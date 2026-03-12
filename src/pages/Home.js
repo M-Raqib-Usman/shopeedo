@@ -86,7 +86,8 @@ export default function Home() {
           {categories.map((cat) => (
             <button
               key={cat.name}
-              className="flex-shrink-0 snap-center flex flex-col items-center bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-200 hover:border-orange-500 hover:shadow-md transition-all duration-200 min-w-[100px]"
+              onClick={() => navigate(`/category/${cat.name}`)}
+              className="flex-shrink-0 snap-center flex flex-col items-center bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-200 hover:border-orange-500 hover:shadow-md transition-all duration-200 min-w-[100px] active:scale-95"
             >
               <span className="text-4xl mb-2">{cat.emoji}</span>
               <span className="text-sm font-medium text-gray-800">{cat.name}</span>
