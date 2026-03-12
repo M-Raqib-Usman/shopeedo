@@ -32,14 +32,17 @@ export default function Header() {
 
                     {/* Cart + Profile icons */}
                     <div className="flex items-center gap-5 sm:gap-7">
-                        <button className="relative text-gray-700 hover:text-orange-600 transition-colors">
+                        <NavLink
+                            to="/cart"
+                            className="relative text-gray-700 hover:text-orange-600 transition-colors"
+                        >
                             <ShoppingCart size={22} strokeWidth={2.1} />
                             {cartCount > 0 && (
                                 <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-medium min-w-[18px] h-4 rounded-full flex items-center justify-center px-1">
                                     {cartCount}
                                 </span>
                             )}
-                        </button>
+                        </NavLink>
 
                         <button className="text-gray-700 hover:text-orange-600 transition-colors">
                             <User size={22} strokeWidth={2.1} />

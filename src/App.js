@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { CartProvider } from './context/CartContext';   // ← new import
+import { CartProvider } from './context/CartContext';   
 import Header from './components/layout/Header';
 import Home from './pages/Home';
-// Add these new pages (we'll create them next)
 import CategoryPage from './pages/CategoryPage';
 import RestaurantDetail from './pages/RestaurantDetail';
+import Cart from './pages/Cart';
 
 function App() {
   return (
@@ -17,6 +17,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/category/:name" element={<CategoryPage />} />
               <Route path="/restaurant/:id" element={<RestaurantDetail />} />
+              <Route path="/cart" element={<Cart />} />
               {/* Later: /cart, /orders, /profile */}
             </Routes>
           </main>
