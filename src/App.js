@@ -1,25 +1,28 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CartProvider } from './context/CartContext';   // ← new import
 import Header from './components/layout/Header';
 import Home from './pages/Home';
+// Add these new pages (we'll create them next)
+import CategoryPage from './pages/CategoryPage';
+import RestaurantDetail from './pages/RestaurantDetail';
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        
-        <Header />
-
-        <main className="flex-1 pt-14 md:pt-16">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            {/* <Route path="/cart" element={<Cart />} /> */}
-            {/* <Route path="/profile" element={<Profile />} /> */}
-            {/* <Route path="/orders" element={<Orders />} /> */}
-          </Routes>
-        </main>
-
-      </div>
-    </Router>
+    <CartProvider>   {/* ← wrap everything */}
+      <Router>
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <Header />
+          <main className="flex-1 pt-28">  {/* increased pt because header has 2 rows */}
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/category/:name" element={<CategoryPage />} />
+              <Route path="/restaurant/:id" element={<RestaurantDetail />} />
+              {/* Later: /cart, /orders, /profile */}
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </CartProvider>
   );
 }
 
