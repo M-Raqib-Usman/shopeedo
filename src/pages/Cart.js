@@ -12,12 +12,14 @@ export default function Cart() {
   const grouped = getGroupedCart();
   const hasMultipleRestaurants = grouped.length > 1;
 
-  // Calculate total delivery fees and grand total
+  // Calculate totals
+  const totalSubtotal = grouped.reduce((sum, group) => sum + group.subtotal, 0);
+
   const totalDeliveryFees = grouped.reduce((sum, group) => {
     return sum + (group.subtotal >= MIN_ORDER_PER_RESTAURANT ? DELIVERY_FEE : 0);
   }, 0);
 
-  const grandTotal = grouped.reduce((sum, group) => sum + group.subtotal, 0) + totalDeliveryFees;
+  const grandTotal = totalSubtotal + totalDeliveryFees;
 
   const formatPrice = (amount) => `Rs. ${Math.round(amount).toLocaleString()}`;
 
@@ -71,13 +73,13 @@ export default function Cart() {
             </div>
 
             {/* Delivery info */}
-            <div className="mb-4 text-sm">
+            <div className="mb-5 text-sm space-y-1">
               <p className="text-gray-700">
                 Delivery fee: {deliveryFeeThis === 0 ? 'Free' : formatPrice(deliveryFeeThis)}
               </p>
               {showMinWarning && (
-                <p className="text-red-600 mt-1">
-                  Add Rs. {Math.round(needsMore)} more to meet minimum order
+                <p className="text-red-600 font-medium">
+                  Add {formatPrice(needsMore)} more to meet minimum order (Rs. {MIN_ORDER_PER_RESTAURANT})
                 </p>
               )}
             </div>
@@ -90,7 +92,7 @@ export default function Cart() {
                   className="flex items-center gap-4 p-5 border-b border-gray-100 last:border-b-0"
                 >
                   {/* Placeholder image */}
-                  <div className="w-20 h-20 bg-gray-100 rounded-xl flex-shrink-0 flex items-center justify-center text-gray-400">
+                  <div className="w-20 h-20 bg-gray-100 rounded-xl flex-shrink-0 flex items-center justify-center text-gray-400 text-2xl">
                     🍽️
                   </div>
 
@@ -105,7 +107,7 @@ export default function Cart() {
                     <div className="flex items-center bg-gray-100 rounded-full px-1">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-200 rounded-l-full"
+                        className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-200 rounded-l-full disabled:opacity-50"
                         disabled={item.quantity <= 1}
                       >
                         <Minus size={16} />
@@ -122,7 +124,7 @@ export default function Cart() {
                     <button
                       onClick={() => removeFromCart(item.id)}
                       className="p-2 text-red-500 hover:bg-red-50 rounded-full transition"
-                      title="Remove"
+                      title="Remove item"
                     >
                       <Trash2 size={20} />
                     </button>
@@ -135,8 +137,8 @@ export default function Cart() {
       })}
 
       {/* Final summary */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mt-8">
-        <div className="space-y-3 mb-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mt-10">
+        <div className="space-y-4 mb-6">
           <div className="flex justify-between text-base text-gray-700">
             <span>Subtotal</span>
             <span>{formatPrice(totalSubtotal)}</span>
@@ -145,7 +147,7 @@ export default function Cart() {
             <span>Delivery fees</span>
             <span>{totalDeliveryFees === 0 ? 'Free' : formatPrice(totalDeliveryFees)}</span>
           </div>
-          <div className="flex justify-between pt-4 border-t font-bold text-lg">
+          <div className="flex justify-between pt-4 border-t font-bold text-xl">
             <span>Total</span>
             <span className="text-orange-700">{formatPrice(grandTotal)}</span>
           </div>
@@ -159,7 +161,7 @@ export default function Cart() {
         </button>
 
         <p className="text-center text-sm text-gray-500 mt-4">
-          Taxes and other fees may apply at checkout
+          Taxes and service charges may apply at checkout
         </p>
       </div>
     </div>
