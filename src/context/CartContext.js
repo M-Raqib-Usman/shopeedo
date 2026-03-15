@@ -38,6 +38,23 @@ export function CartProvider({ children }) {
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
+  const getGroupedCart = () => {
+    const groups = {};
+    cartItems.forEach(item => {
+      const rid = item.restaurantId;
+      if (!groups[rid]) {
+        groups[rid] = {
+          restaurantId: rid,
+          restaurantName: item.restaurantName || `Restaurant ${rid}`,
+          items: [],
+          subtotal: 0
+        };
+      }
+      groups[rid].items.push(item);
+      groups[rid].subtotal += (item.price || 0) * item.quantity;
+    });
+    return Object.values(groups);
+  };
   return (
     <CartContext.Provider
       value={{
@@ -46,6 +63,7 @@ export function CartProvider({ children }) {
         removeFromCart,
         updateQuantity,
         cartCount,
+        getGroupedCart,
       }}
     >
       {children}
