@@ -4,8 +4,8 @@ import { ShoppingCart } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
-  const { cartItems } = useCart();   // We only need cartItems for badge
-
+  const { cartItems } = useCart();   
+  
   // Fake data
   const categories = [
     { name: 'Pizza', emoji: '🍕' },
