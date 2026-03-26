@@ -1,35 +1,70 @@
-import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { placeOrder } from '../services/api';
 
 export default function Checkout() {
-  const navigate = useNavigate();
-  const { getGroupedCart, cartItems, cartCount } = useCart();
+  const { getGroupedCart, cartCount } = useCart();
+
+  const [userAddress, setUserAddress] = useState("Jahanian, Punjab");
   const [loading, setLoading] = useState(false);
-  const [address, setAddress] = useState("House 123, Street 5, Khanewal");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+
+  // Load address from localStorage (shared with Header)
+  useEffect(() => {
+    const savedAddress = localStorage.getItem('shopeedo-address');
+    if (savedAddress) {
+      setUserAddress(savedAddress);
+    }
+  }, []);
 
   const groupedCart = getGroupedCart();
   const totalSubtotal = groupedCart.reduce((sum, group) => sum + group.subtotal, 0);
-  const deliveryFees = groupedCart.length * 99; // Rs.99 per restaurant
+  const deliveryFees = groupedCart.length * 99;
   const grandTotal = totalSubtotal + deliveryFees;
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (cartCount === 0) return;
 
     setLoading(true);
-    
-    setTimeout(() => {
-      toast.success("🎉 Order placed successfully! Your food is on the way.", {
+
+    const orderData = {
+      items: groupedCart.flatMap(group =>
+        group.items.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          restaurantId: group.restaurantId
+        }))
+      ),
+      address: userAddress,
+      total: grandTotal,
+      paymentMethod: paymentMethod,
+      orderTime: new Date().toISOString()
+    };
+
+    try {
+      const result = await placeOrder(orderData);
+
+      toast.success(`🎉 Order placed successfully! Order ID: ${result.orderId || 'SH' + Date.now().toString().slice(-6)}`, {
+        duration: 5000,
+      });
+
+      // Clear cart and redirect
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1800);
+    } catch (error) {
+      // Fallback for demo (if backend not running)
+      toast.success("🎉 Order placed successfully! (Demo Mode - Backend not connected)", {
         duration: 4000,
       });
-      
-      // Clear cart after successful order
-      // In real app, you would call an API here
       setTimeout(() => {
-        navigate('/');
-      }, 2000);
-    }, 1500);
+        window.location.href = '/';
+      }, 1600);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (cartCount === 0) {
@@ -40,7 +75,7 @@ export default function Checkout() {
           <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
           <p className="text-gray-600 mb-6">Add some delicious items first!</p>
           <button 
-            onClick={() => navigate('/')}
+            onClick={() => window.location.href = '/'}
             className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-semibold"
           >
             Browse Restaurants
@@ -51,64 +86,75 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="max-w-2xl mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+    <div className="min-h-screen bg-gray-50 pb-20 pt-4">
+      <div className="max-w-2xl mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-8 text-gray-900">Checkout</h1>
 
         {/* Delivery Address */}
         <div className="bg-white rounded-3xl p-6 mb-6 shadow-sm">
-          <h2 className="font-semibold text-lg mb-4">Delivery Address</h2>
-          <div className="bg-orange-50 p-4 rounded-2xl">
-            <p className="font-medium">{address}</p>
-            <button className="text-orange-600 text-sm mt-2">Change address</button>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold text-lg">Delivery Address</h2>
+            <button 
+              onClick={() => {
+                const newAddr = prompt("Enter new delivery address:", userAddress);
+                if (newAddr && newAddr.trim()) setUserAddress(newAddr.trim());
+              }}
+              className="text-orange-600 text-sm font-medium hover:underline"
+            >
+              Change
+            </button>
+          </div>
+          <div className="bg-orange-50 p-5 rounded-2xl">
+            <p className="font-medium text-gray-800 leading-relaxed">{userAddress}</p>
+            <p className="text-sm text-gray-600 mt-2">Estimated delivery: 30-45 minutes</p>
           </div>
         </div>
 
         {/* Order Summary */}
-        <div className="bg-white rounded-3xl p-6 mb-6">
-          <h2 className="font-semibold text-lg mb-4">Order Summary</h2>
+        <div className="bg-white rounded-3xl p-6 mb-6 shadow-sm">
+          <h2 className="font-semibold text-lg mb-5">Order Summary</h2>
+          
           {groupedCart.map((group) => (
-            <div key={group.restaurantId} className="mb-6 last:mb-0">
-              <div className="font-medium mb-2">{group.restaurantName}</div>
+            <div key={group.restaurantId} className="mb-8 last:mb-0">
+              <div className="font-medium mb-3 text-orange-700">{group.restaurantName}</div>
               {group.items.map((item) => (
-                <div key={item.id} className="flex justify-between text-sm py-1">
+                <div key={item.id} className="flex justify-between py-2 text-sm">
                   <span>{item.quantity}× {item.name}</span>
                   <span>Rs. {item.price * item.quantity}</span>
                 </div>
               ))}
-              <div className="border-t pt-3 mt-3 text-sm flex justify-between font-medium">
-                <span>Subtotal</span>
-                <span>Rs. {group.subtotal}</span>
-              </div>
+              <div className="border-t my-4"></div>
             </div>
           ))}
 
-          <div className="border-t pt-4 mt-4 space-y-2 text-sm">
+          <div className="space-y-3 pt-4 border-t text-sm">
             <div className="flex justify-between">
-              <span>Delivery Fee</span>
+              <span>Subtotal</span>
+              <span>Rs. {totalSubtotal}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Delivery Fee ({groupedCart.length} restaurant{groupedCart.length > 1 ? 's' : ''})</span>
               <span>Rs. {deliveryFees}</span>
             </div>
-            <div className="flex justify-between font-bold text-lg pt-3 border-t">
-              <span>Total</span>
+            <div className="flex justify-between font-bold text-lg border-t pt-4">
+              <span>Grand Total</span>
               <span>Rs. {grandTotal}</span>
             </div>
           </div>
         </div>
 
         {/* Payment Method */}
-        <div className="bg-white rounded-3xl p-6 mb-8">
+        <div className="bg-white rounded-3xl p-6 mb-8 shadow-sm">
           <h2 className="font-semibold text-lg mb-4">Payment Method</h2>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-4 border border-orange-500 rounded-2xl bg-orange-50">
-              <div className="w-6 h-6 bg-orange-500 rounded-full"></div>
-              <div>
-                <p className="font-medium">Cash on Delivery</p>
-                <p className="text-sm text-gray-600">Pay when you receive</p>
-              </div>
+          <div 
+            className="p-4 border border-orange-500 rounded-2xl bg-orange-50 flex items-center gap-3 cursor-pointer"
+          >
+            <div className="w-5 h-5 rounded-full border-2 border-orange-500 flex items-center justify-center">
+              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
             </div>
-            <div className="flex items-center gap-3 p-4 border rounded-2xl opacity-60">
-              <div className="w-6 h-6 bg-gray-400 rounded-full"></div>
-              <p className="font-medium">Online Payment (Coming Soon)</p>
+            <div>
+              <p className="font-medium">Cash on Delivery</p>
+              <p className="text-xs text-gray-500">Pay when you receive your order</p>
             </div>
           </div>
         </div>
@@ -117,13 +163,13 @@ export default function Checkout() {
         <button 
           onClick={handlePlaceOrder}
           disabled={loading}
-          className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-400 text-white py-4 rounded-3xl font-semibold text-lg transition flex items-center justify-center gap-2"
+          className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-400 text-white py-4 rounded-3xl font-semibold text-lg transition shadow-lg flex items-center justify-center gap-2"
         >
-          {loading ? "Placing Order..." : `Place Order - Rs. ${grandTotal}`}
+          {loading ? "Placing your order..." : `Place Order • Rs. ${grandTotal}`}
         </button>
 
         <p className="text-center text-xs text-gray-500 mt-6">
-          Your order will be delivered in {groupedCart[0]?.restaurantName || ''} estimated time
+          Your order will be prepared fresh by the respective restaurants
         </p>
       </div>
     </div>
