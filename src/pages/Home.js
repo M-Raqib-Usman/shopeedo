@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { ShoppingCart } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { cartItems } = useCart();   // We only need cartItems for badge
 
-  // Fake data - later replace with API fetch
+  // Fake data
   const categories = [
     { name: 'Pizza', emoji: '🍕' },
     { name: 'Biryani', emoji: '🍲' },
@@ -26,7 +27,7 @@ export default function Home() {
       rating: 4.6,
       deliveryTime: '20-35 min',
       deliveryFee: 'Rs. 99',
-      image: 'https://via.placeholder.com/300x180?text=Pizza',
+      image: 'https://via.placeholder.com/300x180?text=Pizza+Point',
     },
     {
       id: 2,
@@ -44,7 +45,7 @@ export default function Home() {
       rating: 4.4,
       deliveryTime: '15-30 min',
       deliveryFee: 'Rs. 149',
-      image: 'https://via.placeholder.com/300x180?text=Burger',
+      image: 'https://via.placeholder.com/300x180?text=Burger+Lab',
     },
     {
       id: 4,
@@ -53,119 +54,122 @@ export default function Home() {
       rating: 4.7,
       deliveryTime: '10-25 min',
       deliveryFee: 'Rs. 49',
-      image: 'https://via.placeholder.com/300x180?text=Grocery',
+      image: 'https://via.placeholder.com/300x180?text=Fresh+Mart',
     },
   ];
 
+  // Helper: Get total quantity from a specific restaurant
+  const getRestaurantItemCount = (restaurantId) => {
+    return cartItems
+      .filter(item => item.restaurantId === restaurantId)
+      .reduce((sum, item) => sum + item.quantity, 0);
+  };
+
   return (
-    <div className="pt-4 pb-12">
+    <div className="pt-4 pb-12 bg-gray-50 min-h-screen">
 
       {/* 1. Promo Banner */}
-      <div className="mx-4 mb-6 rounded-2xl overflow-hidden bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white shadow-lg">
-        <div className="p-6 md:p-10 text-center md:text-left relative">
-          <h2 className="text-2xl md:text-4xl font-extrabold mb-3 drop-shadow-md">
-            Cravings? Get 50% OFF!
+      <div className="mx-4 mb-8 rounded-3xl overflow-hidden bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 text-white shadow-xl">
+        <div className="p-8 md:p-12 text-center relative">
+          <div className="absolute top-4 right-4 bg-white/20 px-4 py-1 rounded-full text-sm font-medium">
+            Limited Time
+          </div>
+          <h2 className="text-3xl md:text-5xl font-extrabold mb-4 drop-shadow-md">
+            50% OFF on First Order!
           </h2>
-          <p className="text-base md:text-lg mb-4 opacity-90">
-            First order? Use code <span className="font-bold bg-white/20 px-2 py-1 rounded">FIRST50</span>
+          <p className="text-lg md:text-xl mb-6 opacity-90">
+            Use code <span className="font-bold bg-white/30 px-3 py-1 rounded-lg">FIRST50</span>
           </p>
-          <p className="text-sm opacity-80">Min. order Rs. 300 • Limited time!</p>
-
-          <button className="mt-5 bg-white text-orange-700 font-semibold px-6 py-3 rounded-full shadow-md hover:bg-gray-100 transition active:scale-95">
-            Order Now
+          <button
+            onClick={() => navigate('/restaurant/1')}
+            className="mt-5 bg-white text-orange-700 font-semibold px-8 py-3.5 rounded-2xl shadow-lg hover:bg-gray-100 transition active:scale-95 text-base font-medium"
+          >
+            Order Now from Pizza Point →
           </button>
         </div>
       </div>
 
       {/* 2. Category Chips */}
-      <div className="px-4 mb-8">
-        <h3 className="text-lg md:text-xl font-bold mb-4 text-gray-800">
-          What are you in the mood for?
+      <div className="px-4 mb-10">
+        <h3 className="text-xl font-bold mb-5 text-gray-800 px-1">
+          What are you craving?
         </h3>
         <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
           {categories.map((cat) => (
             <button
               key={cat.name}
-              onClick={() => navigate(`/category/${cat.name}`)}
-              className="flex-shrink-0 snap-center flex flex-col items-center bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-200 hover:border-orange-500 hover:shadow-md transition-all duration-200 min-w-[100px] active:scale-95"
+              onClick={() => navigate(`/category/${cat.name.toLowerCase()}`)}
+              className="flex-shrink-0 snap-center flex flex-col items-center bg-white rounded-3xl px-6 py-5 shadow-sm border border-gray-100 hover:border-orange-400 hover:shadow-md transition-all min-w-[110px]"
             >
-              <span className="text-4xl mb-2">{cat.emoji}</span>
-              <span className="text-sm font-medium text-gray-800">{cat.name}</span>
+              <span className="text-4xl mb-3">{cat.emoji}</span>
+              <span className="text-sm font-semibold text-gray-800">{cat.name}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* 3. Popular Restaurants – clickable cards with Add to Cart button */}
-      <div className="px-4 mb-10">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg md:text-xl font-bold text-gray-800">
-            Popular near Jahanian
+      {/* 3. Popular Restaurants */}
+      <div className="px-4">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-xl font-bold text-gray-800">
+            Popular near you
           </h3>
-          <button className="text-orange-600 text-sm font-medium hover:underline">
-            See all →
-          </button>
+          <span className="text-orange-600 text-sm font-medium">See all →</span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {restaurants.map((restaurant) => (
-            <div
-              key={restaurant.id}
-              onClick={() => navigate(`/restaurant/${restaurant.id}`)}
-              className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100"
-            >
-              <div className="relative">
-                <img
-                  src={restaurant.image}
-                  alt={restaurant.name}
-                  className="w-full h-40 md:h-48 object-cover"
-                />
-                <div className="absolute top-2 right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                  {restaurant.rating} ★
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+          {restaurants.map((restaurant) => {
+            const itemCount = getRestaurantItemCount(restaurant.id);
+
+            return (
+              <div
+                key={restaurant.id}
+                onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                className="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 group"
+              >
+                <div className="relative">
+                  <img
+                    src={restaurant.image}
+                    alt={restaurant.name}
+                    className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+
+                  {/* Rating Badge */}
+                  <div className="absolute top-3 right-3 bg-white text-black text-xs font-bold px-3 py-1 rounded-2xl shadow flex items-center gap-1">
+                    ⭐ {restaurant.rating}
+                  </div>
+
+                  {/* Quantity Badge - Shows if items added from this restaurant */}
+                  {itemCount > 0 && (
+                    <div className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-2xl shadow flex items-center gap-1">
+                      <ShoppingCart size={14} />
+                      {itemCount}
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4">
+                  <h4 className="font-semibold text-lg text-gray-900 truncate">
+                    {restaurant.name}
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-1">
+                    {restaurant.cuisine}
+                  </p>
+
+                  <div className="flex items-center justify-between mt-4 text-sm">
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <span>⏱ {restaurant.deliveryTime}</span>
+                    </div>
+                    <div className={`font-medium ${restaurant.deliveryFee === 'Free' ? 'text-green-600' : 'text-gray-700'}`}>
+                      {restaurant.deliveryFee}
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div className="p-4">
-                <h4 className="font-semibold text-gray-900 text-base md:text-lg truncate">
-                  {restaurant.name}
-                </h4>
-                <p className="text-sm text-gray-600 mt-1 truncate">{restaurant.cuisine}</p>
-
-                <div className="flex items-center gap-4 mt-3 text-sm text-gray-700">
-                  <span className="font-medium">{restaurant.deliveryTime}</span>
-                  <span>•</span>
-                  <span className={restaurant.deliveryFee === 'Free' ? 'text-green-600 font-medium' : ''}>
-                    {restaurant.deliveryFee}
-                  </span>
-                </div>
-
-                {/* Add to Cart button */}
-                <div className="mt-4 flex items-center justify-between">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent card click (navigation) when button is clicked
-                      addToCart({
-                        id: `restaurant-${restaurant.id}`,
-                        name: `Order from ${restaurant.name}`,
-                        price: 0, // placeholder – later use real price or menu item price
-                        restaurantId: restaurant.id,
-                      });
-                    }}
-                    className="bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-600 transition active:scale-95"
-                  >
-                    Add to Cart
-                  </button>
-
-                  <span className="text-sm font-medium text-gray-700">
-                    {restaurant.deliveryFee === 'Free' ? 'Free Delivery' : restaurant.deliveryFee}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
-
     </div>
   );
 }
