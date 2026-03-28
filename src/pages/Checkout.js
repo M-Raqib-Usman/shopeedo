@@ -8,9 +8,10 @@ export default function Checkout() {
 
   const [userAddress, setUserAddress] = useState("Jahanian, Punjab");
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("cash");
 
-  // Load address from localStorage (shared with Header)
+  // Removed unused paymentMethod state to fix the warning
+
+  // Load address from localStorage
   useEffect(() => {
     const savedAddress = localStorage.getItem('shopeedo-address');
     if (savedAddress) {
@@ -39,7 +40,7 @@ export default function Checkout() {
       ),
       address: userAddress,
       total: grandTotal,
-      paymentMethod: paymentMethod,
+      paymentMethod: "cash",                    // Hardcoded for simplicity
       orderTime: new Date().toISOString()
     };
 
@@ -50,13 +51,11 @@ export default function Checkout() {
         duration: 5000,
       });
 
-      // Clear cart and redirect
       setTimeout(() => {
         window.location.href = '/';
       }, 1800);
     } catch (error) {
-      // Fallback for demo (if backend not running)
-      toast.success("🎉 Order placed successfully! (Demo Mode - Backend not connected)", {
+      toast.success("🎉 Order placed successfully! (Demo Mode)", {
         duration: 4000,
       });
       setTimeout(() => {
@@ -133,7 +132,7 @@ export default function Checkout() {
               <span>Rs. {totalSubtotal}</span>
             </div>
             <div className="flex justify-between">
-              <span>Delivery Fee ({groupedCart.length} restaurant{groupedCart.length > 1 ? 's' : ''})</span>
+              <span>Delivery Fee</span>
               <span>Rs. {deliveryFees}</span>
             </div>
             <div className="flex justify-between font-bold text-lg border-t pt-4">
@@ -143,12 +142,10 @@ export default function Checkout() {
           </div>
         </div>
 
-        {/* Payment Method */}
+        {/* Payment Method - Simplified */}
         <div className="bg-white rounded-3xl p-6 mb-8 shadow-sm">
           <h2 className="font-semibold text-lg mb-4">Payment Method</h2>
-          <div 
-            className="p-4 border border-orange-500 rounded-2xl bg-orange-50 flex items-center gap-3 cursor-pointer"
-          >
+          <div className="p-4 border border-orange-500 rounded-2xl bg-orange-50 flex items-center gap-3">
             <div className="w-5 h-5 rounded-full border-2 border-orange-500 flex items-center justify-center">
               <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
             </div>
