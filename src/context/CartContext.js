@@ -1,3 +1,4 @@
+// src/context/CartContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
@@ -5,7 +6,7 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
 
-  // Load cart from localStorage
+  // Load from localStorage
   useEffect(() => {
     const savedCart = localStorage.getItem('shopeedo-cart');
     if (savedCart) {
@@ -13,20 +14,20 @@ export function CartProvider({ children }) {
     }
   }, []);
 
-  // Save to localStorage whenever cart changes
+  // Save to localStorage
   useEffect(() => {
     localStorage.setItem('shopeedo-cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Add item to cart (with restaurant info)
-  const addToCart = (item, restaurantId, restaurantName) => {
+  // Add to Cart - Accepts a single object
+  const addToCart = (newItem) => {
     setCartItems((prevItems) => {
       const existingIndex = prevItems.findIndex(
-        (i) => i.id === item.id && i.restaurantId === restaurantId
+        (i) => i.id === newItem.id && i.restaurantId === newItem.restaurantId
       );
 
       if (existingIndex !== -1) {
-        // Item already exists from same restaurant → increase quantity
+        // Increase quantity
         const updated = [...prevItems];
         updated[existingIndex] = {
           ...updated[existingIndex],
@@ -34,30 +35,18 @@ export function CartProvider({ children }) {
         };
         return updated;
       } else {
-        // New item
-        return [
-          ...prevItems,
-          {
-            ...item,
-            restaurantId,
-            restaurantName: restaurantName || `Restaurant ${restaurantId}`,
-            quantity: 1,
-          },
-        ];
+        // Add new item
+        return [...prevItems, { ...newItem, quantity: 1 }];
       }
     });
   };
 
-  // Remove item
   const removeFromCart = (itemId, restaurantId) => {
     setCartItems((prev) =>
-      prev.filter(
-        (item) => !(item.id === itemId && item.restaurantId === restaurantId)
-      )
+      prev.filter((item) => !(item.id === itemId && item.restaurantId === restaurantId))
     );
   };
 
-  // Update quantity
   const updateQuantity = (itemId, restaurantId, newQuantity) => {
     if (newQuantity < 1) {
       removeFromCart(itemId, restaurantId);
@@ -73,7 +62,6 @@ export function CartProvider({ children }) {
     );
   };
 
-  // Get quantity of a specific item from specific restaurant
   const getItemQuantity = (itemId, restaurantId) => {
     const item = cartItems.find(
       (i) => i.id === itemId && i.restaurantId === restaurantId
@@ -81,7 +69,6 @@ export function CartProvider({ children }) {
     return item ? item.quantity : 0;
   };
 
-  // Grouped cart (existing logic - improved)
   const getGroupedCart = () => {
     const groups = {};
     cartItems.forEach((item) => {
@@ -109,7 +96,7 @@ export function CartProvider({ children }) {
         addToCart,
         removeFromCart,
         updateQuantity,
-        getItemQuantity,        // ← NEW: Very important for RestaurantDetail
+        getItemQuantity,
         getGroupedCart,
         cartCount,
       }}

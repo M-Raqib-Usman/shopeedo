@@ -3,12 +3,13 @@ import { CartProvider } from './context/CartContext';
 import { Toaster } from 'react-hot-toast';
 
 import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';     // ← ADD THIS LINE
+import Footer from './components/layout/Footer';   
 import Home from './pages/Home';
 import CategoryPage from './pages/CategoryPage';
 import RestaurantDetail from './pages/RestaurantDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
+import Auth from './pages/Auth';
 
 function App() {
   return (
