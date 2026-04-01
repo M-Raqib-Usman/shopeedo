@@ -1,13 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';   
-import { Toaster } from 'react-hot-toast'; 
-import Checkout from './pages/Checkout';  
+import { Toaster } from 'react-hot-toast';
 
 import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';     // ← ADD THIS LINE
 import Home from './pages/Home';
 import CategoryPage from './pages/CategoryPage';
 import RestaurantDetail from './pages/RestaurantDetail';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
 
 function App() {
   return (
@@ -23,12 +24,14 @@ function App() {
               <Route path="/restaurant/:id" element={<RestaurantDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
-              {/* Later: /orders, /profile, /checkout */}
+              {/* Add more routes later */}
             </Routes>
           </main>
+
+          <Footer />   {/* ← Footer added here */}
         </div>
 
-        {/* Toast Notifications - Global */}
+        {/* Toast Notifications */}
         <Toaster 
           position="top-center"
           toastOptions={{
@@ -38,20 +41,6 @@ function App() {
               color: '#fff',
               borderRadius: '9999px',
               padding: '14px 22px',
-              fontSize: '15px',
-              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-            },
-            success: {
-              iconTheme: {
-                primary: '#f97316',   // Orange-500 - matches your Shopeedo theme
-                secondary: '#fff',
-              },
-            },
-            error: {
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
-              },
             },
           }}
         />

@@ -6,11 +6,15 @@ const orderSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  customerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   items: [{
-    name: String,
-    quantity: Number,
-    price: Number,
-    restaurantId: Number
+    name: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    price: { type: Number, required: true },
+    restaurantId: { type: Number, required: true }
   }],
   address: {
     type: String,
@@ -28,6 +32,10 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ['pending', 'confirmed', 'preparing', 'ready', 'picked_up', 'delivered', 'cancelled'],
     default: 'pending'
+  },
+  assignedRider: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
   createdAt: {
     type: Date,
