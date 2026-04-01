@@ -1,46 +1,20 @@
 const API_BASE_URL = 'http://localhost:5000/api';
 
-// Helper function for API calls
-const apiCall = async (endpoint, options = {}) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      ...options,
-    });
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('API Error:', error);
-    // Fallback for demo when backend is off
-    throw error;
-  }
-};
-
-// Get all restaurants
 export const getRestaurants = async () => {
-  return apiCall('/restaurants');
+  const response = await fetch(`${API_BASE_URL}/restaurants`);
+  return response.json();
 };
 
-// Get single restaurant with menu
 export const getRestaurantById = async (id) => {
-  return apiCall(`/restaurant/${id}`);
+  const response = await fetch(`${API_BASE_URL}/restaurant/${id}`);
+  return response.json();
 };
 
-// Place new order
 export const placeOrder = async (orderData) => {
-  return apiCall('/orders', {
+  const response = await fetch(`${API_BASE_URL}/orders`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(orderData),
   });
-};
-
-// For future use
-export const searchRestaurants = async (query) => {
-  return apiCall(`/restaurants?search=${query}`);
+  return response.json();
 };

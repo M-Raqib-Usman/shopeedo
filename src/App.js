@@ -24,6 +24,7 @@ function App() {
               <Route path="/restaurant/:id" element={<RestaurantDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/auth" element={<Auth />} />
               {/* Add more routes later */}
             </Routes>
           </main>
