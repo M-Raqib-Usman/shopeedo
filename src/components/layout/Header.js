@@ -1,29 +1,30 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Search, ShoppingCart, User, ChevronDown, LogIn } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { MapPin, Search, ShoppingCart, ChevronDown, LogIn, LogOut, User } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import toast from 'react-hot-toast';
 
 export default function Header() {
   const { cartCount } = useCart();
+  const navigate = useNavigate();
 
   const [userAddress, setUserAddress] = useState("Jahanian, Punjab");
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
-  // Load saved address
-  // Load saved address
+  // Load user and address data
   useEffect(() => {
-    const saved = localStorage.getItem('shopeedo-address');
-    if (saved) setUserAddress(saved);
+    const savedAddress = localStorage.getItem('shopeedo-address');
+    if (savedAddress) setUserAddress(savedAddress);
 
-    // Check if user is logged in
     const savedUser = localStorage.getItem('shopeedo-user');
     if (savedUser) {
       const user = JSON.parse(savedUser);
       setIsLoggedIn(true);
       setUserName(user.name || "User");
+      setUserEmail(user.email || "");
     }
   }, []);
 
@@ -32,54 +33,44 @@ export default function Header() {
     localStorage.setItem('shopeedo-address', userAddress);
   }, [userAddress]);
 
-  // Improved Location Detection
+  const handleLogout = () => {
+    localStorage.removeItem('shopeedo-user');
+    setIsLoggedIn(false);
+    setUserName("");
+    setUserEmail("");
+    toast.success("Logged out successfully");
+    navigate('/auth');
+  };
+
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported in your browser");
+      toast.error("Geolocation is not supported");
       return;
     }
 
     toast.loading("Detecting your location...", { id: "location" });
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        // For demo - showing a nice address instead of coordinates
-        const demoAddress = "Near You • Jahanian, Punjab";
-        setUserAddress(demoAddress);
-        toast.success("✅ Location detected successfully!", {
-          id: "location",
-          duration: 2500
-        });
+      () => {
+        setUserAddress("Near You • Jahanian, Punjab");
+        toast.success("✅ Location detected successfully!", { id: "location", duration: 2000 });
         setIsLocationOpen(false);
       },
-      (error) => {
-        toast.dismiss("location"); // Remove loading toast
-        if (error.code === 1) {
-          toast.error("Location access denied. Please enter address manually.", {
-            duration: 4000,
-            icon: '📍'
-          });
-        } else {
-          toast.error("Unable to get location. Please try manually.", {
-            duration: 4000
-          });
-        }
+      () => {
+        toast.dismiss("location");
+        toast.error("Unable to detect location. Please enter manually.");
       }
     );
   };
 
   const enterAddressManually = () => {
     const newAddress = prompt("Enter your full delivery address:", userAddress);
-    if (newAddress && newAddress.trim() !== "") {
+    if (newAddress && newAddress.trim()) {
       setUserAddress(newAddress.trim());
       toast.success("Address updated successfully!");
       setIsLocationOpen(false);
     }
-  };
-  const handleLoginClick = () => {
-    // For now, navigate to login page (you can change to modal later)
-    window.location.href = '/login';
-    // Or use react-router: navigate('/login')
   };
 
   return (
@@ -101,7 +92,7 @@ export default function Header() {
           </div>
 
           {/* Location Picker */}
-          <div
+          <div 
             onClick={() => setIsLocationOpen(!isLocationOpen)}
             className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-orange-600 cursor-pointer transition-colors"
           >
@@ -115,7 +106,7 @@ export default function Header() {
             <ChevronDown size={16} />
           </div>
 
-          {/* Icons */}
+          {/* Right Side Icons */}
           <div className="flex items-center gap-6">
             <NavLink to="/cart" className="relative text-gray-700 hover:text-orange-600 transition">
               <ShoppingCart size={23} strokeWidth={2.2} />
@@ -125,87 +116,84 @@ export default function Header() {
                 </span>
               )}
             </NavLink>
-            <User size={23} className="text-gray-700 hover:text-orange-600 cursor-pointer" />
-          </div>
-        </div>
 
-        {/* Login / User Icon */}
-        {isLoggedIn ? (
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => {/* Open profile menu later */ }}>
-            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-medium">
-              {userName.charAt(0)}
-            </div>
-            <span className="hidden md:block text-sm font-medium">{userName}</span>
-          </div>
-        ) : (
-          <button
-            onClick={handleLoginClick}
-            className="flex items-center gap-2 text-gray-700 hover:text-orange-600 transition"
-          >
-            <LogIn size={23} />
-            <span className="hidden md:block text-sm font-medium">Login</span>
-          </button>
-        )}
-      </div>
-
-      {/* Bottom Row - Search + Nav */}
-      <div className="h-12 flex items-center border-t border-gray-100 -mx-4 px-4 sm:-mx-6 sm:px-6">
-        <div className="flex-1 max-w-2xl mx-auto relative hidden md:block">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search biryani, pizza, groceries..."
-            className="w-full pl-12 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-          />
-        </div>
-
-        <nav className="flex gap-7 text-sm font-medium ml-auto">
-          <NavLink to="/" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Home</NavLink>
-          <NavLink to="/orders" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Orders</NavLink>
-          <NavLink to="/profile" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Profile</NavLink>
-          <NavLink to="/help" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Help</NavLink>
-        </nav>
-      </div>
-      
-      {/* Location Modal */}
-      {
-        isLocationOpen && (
-          <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center" onClick={() => setIsLocationOpen(false)}>
-            <div className="bg-white rounded-3xl w-full max-w-sm mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
-              <div className="p-6">
-                <h3 className="font-semibold text-xl mb-1">Delivery Location</h3>
-                <p className="text-gray-600 text-sm mb-6">Where should we deliver your order?</p>
-
-                <div className="space-y-3">
-                  <button
-                    onClick={getCurrentLocation}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-2xl font-medium flex items-center justify-center gap-2 transition"
-                  >
-                    <MapPin size={20} />
-                    Detect My Location
-                  </button>
-
-                  <button
-                    onClick={enterAddressManually}
-                    className="w-full border border-gray-300 hover:bg-gray-50 py-4 rounded-2xl font-medium transition"
-                  >
-                    Enter Address Manually
-                  </button>
-                </div>
-              </div>
-
-              <div className="border-t p-4">
-                <button
-                  onClick={() => setIsLocationOpen(false)}
-                  className="w-full text-gray-500 py-2 text-sm"
+            {/* Auth / Profile Section */}
+            {isLoggedIn ? (
+              <div className="flex items-center gap-3 relative group">
+                <div 
+                  onClick={() => navigate('/profile')}
+                  className="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition"
                 >
-                  Close
+                  <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center font-medium text-orange-600">
+                    {userName.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="hidden md:block text-sm font-medium">{userName}</span>
+                </div>
+
+                {/* Logout Dropdown */}
+                <button
+                  onClick={handleLogout}
+                  className="text-red-500 hover:text-red-600 transition hidden group-hover:block"
+                  title="Logout"
+                >
+                  <LogOut size={20} />
                 </button>
               </div>
+            ) : (
+              <div 
+                onClick={() => navigate('/auth')}
+                className="flex items-center gap-2 cursor-pointer text-gray-700 hover:text-orange-600 transition"
+              >
+                <LogIn size={23} />
+                <span className="hidden md:block text-sm font-medium">Login</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom Row */}
+        <div className="h-12 flex items-center border-t border-gray-100 -mx-4 px-4 sm:-mx-6 sm:px-6">
+          <div className="flex-1 max-w-2xl mx-auto relative hidden md:block">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search biryani, pizza, groceries..."
+              className="w-full pl-12 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+            />
+          </div>
+
+          <nav className="flex gap-7 text-sm font-medium ml-auto">
+            <NavLink to="/" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Home</NavLink>
+            <NavLink to="/orders" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Orders</NavLink>
+            <NavLink to="/profile" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Profile</NavLink>
+            <NavLink to="/help" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Help</NavLink>
+          </nav>
+        </div>
+      </div>
+      
+      {/* Location Modal - Keep your existing modal code here */}
+      {isLocationOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-4 w-[90%] max-w-sm shadow-lg">
+            <h3 className="text-lg font-semibold mb-2">Set delivery location</h3>
+            <p className="text-sm text-gray-600 mb-4">{userAddress}</p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsLocationOpen(false)}
+                className="px-3 py-1 rounded-md border border-gray-200 text-sm"
+              >
+                Close
+              </button>
+              <button
+                onClick={getCurrentLocation}
+                className="px-3 py-1 rounded-md bg-orange-500 text-white text-sm"
+              >
+                Detect location
+              </button>
             </div>
           </div>
-        )
-      }
-    </header >
+        </div>
+      )}
+    </header>
   );
 }
