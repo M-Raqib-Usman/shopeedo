@@ -24,8 +24,8 @@ export default function Auth() {
 
     setTimeout(() => {
       const userData = {
-        name: isLogin 
-          ? (formData.email.split('@')[0] || "User") 
+        name: isLogin
+          ? (formData.email.split('@')[0] || "User")
           : (formData.name || formData.email.split('@')[0] || "User"),
         email: formData.email,
         phone: formData.phone || '',
@@ -51,6 +51,13 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium"
+      >
+        ← Back to Home
+      </button>
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <div className="mx-auto w-20 h-20 bg-orange-500 rounded-3xl flex items-center justify-center text-white text-5xl mb-5 shadow-lg">
@@ -63,17 +70,15 @@ export default function Auth() {
         <div className="bg-white rounded-3xl p-1 shadow-sm mb-8 flex">
           <button
             onClick={() => setIsLogin(true)}
-            className={`flex-1 py-4 rounded-3xl font-semibold transition-all ${
-              isLogin ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            className={`flex-1 py-4 rounded-3xl font-semibold transition-all ${isLogin ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              }`}
           >
             Login
           </button>
           <button
             onClick={() => setIsLogin(false)}
-            className={`flex-1 py-4 rounded-3xl font-semibold transition-all ${
-              !isLogin ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            className={`flex-1 py-4 rounded-3xl font-semibold transition-all ${!isLogin ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              }`}
           >
             Sign Up
           </button>

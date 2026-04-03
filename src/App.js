@@ -12,6 +12,7 @@ import RestaurantDetail from './pages/RestaurantDetail';
 import CategoryPage from './pages/CategoryPage';
 import Checkout from './pages/Checkout';    
 import Admin from './pages/Admin'   
+import Orders from './pages/Orders';
 
 function App() {
   return (
@@ -76,6 +77,7 @@ function App() {
           } />
 
           <Route path="/admin" element={<Admin />} />
+          <Route path="/orders" element={<Orders />} />
 
           {/* Placeholder Pages */}
           <Route path="/orders" element={

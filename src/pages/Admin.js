@@ -7,41 +7,37 @@ export default function Admin() {
   const [orders, setOrders] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('orders');
 
-  // Admin Access Check
+  // Admin Check
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('shopeedo-user') || '{}');
     if (user.email !== 'admin@shopeedo.com') {
-      toast.error("Access Denied! Admin only.");
+      toast.error("Access Denied! Only Admin can access this page.");
       navigate('/');
     }
   }, [navigate]);
 
-  // Fetch Orders & Restaurants
+  // Fetch Data
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch Orders
         const ordersRes = await fetch('http://localhost:5000/api/orders');
         if (ordersRes.ok) {
-          const ordersData = await ordersRes.json();
-          setOrders(Array.isArray(ordersData) ? ordersData : []);
+          const data = await ordersRes.json();
+          setOrders(Array.isArray(data) ? data : []);
         }
 
         // Fetch Restaurants
         const restRes = await fetch('http://localhost:5000/api/restaurants');
         if (restRes.ok) {
-          const restData = await restRes.json();
-          setRestaurants(restData);
+          const data = await restRes.json();
+          setRestaurants(data);
         }
       } catch (error) {
-        console.error("Failed to fetch data");
-        // Demo fallback data
-        setOrders([
-          { orderId: "ORD123456", address: "House 123, Jahanian", total: 2450, status: "pending", createdAt: new Date() },
-          { orderId: "ORD123457", address: "Street 5, Khanewal", total: 1890, status: "confirmed", createdAt: new Date(Date.now() - 86400000) },
-        ]);
+        console.error("Fetch error");
+        toast.error("Failed to load data from server");
       } finally {
         setLoading(false);
       }
@@ -60,11 +56,9 @@ export default function Admin() {
 
       if (res.ok) {
         toast.success(`Order ${orderId} updated to ${newStatus}`);
-        // Refresh orders
-        const updatedOrders = orders.map(order => 
-          order.orderId === orderId ? { ...order, status: newStatus } : order
-        );
-        setOrders(updatedOrders);
+        // Refresh list
+        const updated = orders.map(o => o.orderId === orderId ? {...o, status: newStatus} : o);
+        setOrders(updated);
       }
     } catch (error) {
       toast.error("Failed to update status");
@@ -75,54 +69,31 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-red-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl">A</div>
             <div>
               <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-              <p className="text-sm text-gray-500">Shopeedo Management Panel</p>
+              <p className="text-sm text-gray-500">Shopeedo Control Center</p>
             </div>
           </div>
-          <button 
-            onClick={() => navigate('/')}
-            className="px-6 py-2.5 bg-gray-800 hover:bg-gray-900 text-white rounded-2xl transition"
-          >
+          <button onClick={() => navigate('/')} className="px-6 py-2.5 bg-gray-800 text-white rounded-2xl hover:bg-gray-900">
             Back to User Site
           </button>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Tabs */}
-        <div className="flex border-b mb-8 bg-white rounded-3xl p-1 w-fit">
-          <button onClick={() => setActiveTab('dashboard')} className={`px-8 py-3 rounded-3xl font-medium ${activeTab === 'dashboard' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>Dashboard</button>
-          <button onClick={() => setActiveTab('orders')} className={`px-8 py-3 rounded-3xl font-medium ${activeTab === 'orders' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>Orders</button>
-          <button onClick={() => setActiveTab('restaurants')} className={`px-8 py-3 rounded-3xl font-medium ${activeTab === 'restaurants' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>Restaurants</button>
+        <div className="flex gap-2 mb-8 border-b pb-1">
+          <button onClick={() => setActiveTab('orders')} className={`px-8 py-3 rounded-3xl font-medium transition ${activeTab === 'orders' ? 'bg-orange-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>Orders</button>
+          <button onClick={() => setActiveTab('restaurants')} className={`px-8 py-3 rounded-3xl font-medium transition ${activeTab === 'restaurants' ? 'bg-orange-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>Restaurants</button>
         </div>
-
-        {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-8 rounded-3xl shadow-sm">
-              <p className="text-gray-500">Total Orders</p>
-              <p className="text-5xl font-bold mt-4">{orders.length}</p>
-            </div>
-            <div className="bg-white p-8 rounded-3xl shadow-sm">
-              <p className="text-gray-500">Pending Orders</p>
-              <p className="text-5xl font-bold mt-4 text-orange-600">{orders.filter(o => o.status === 'pending').length}</p>
-            </div>
-            <div className="bg-white p-8 rounded-3xl shadow-sm">
-              <p className="text-gray-500">Total Revenue</p>
-              <p className="text-5xl font-bold mt-4">Rs. {orders.reduce((sum, o) => sum + (o.total || 0), 0)}</p>
-            </div>
-          </div>
-        )}
 
         {/* Orders Tab */}
         {activeTab === 'orders' && (
           <div>
-            <h2 className="text-2xl font-bold mb-6">All Orders</h2>
+            <h2 className="text-2xl font-bold mb-6">All Orders ({orders.length})</h2>
             <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
               <table className="w-full">
                 <thead className="bg-gray-50">
@@ -138,12 +109,12 @@ export default function Admin() {
                   {orders.map((order) => (
                     <tr key={order.orderId} className="hover:bg-gray-50">
                       <td className="py-6 px-6 font-medium">{order.orderId}</td>
-                      <td className="py-6 px-6 text-sm text-gray-600">{order.address}</td>
+                      <td className="py-6 px-6 text-sm text-gray-600 max-w-xs truncate">{order.address}</td>
                       <td className="py-6 px-6 font-semibold">Rs. {order.total}</td>
                       <td className="py-6 px-6">
-                        <span className={`px-4 py-1 rounded-full text-xs font-medium ${
-                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
-                          order.status === 'confirmed' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                        <span className={`px-4 py-1 text-xs font-medium rounded-full ${
+                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                          order.status === 'delivered' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                         }`}>
                           {order.status}
                         </span>
@@ -152,7 +123,7 @@ export default function Admin() {
                         <select 
                           value={order.status}
                           onChange={(e) => updateOrderStatus(order.orderId, e.target.value)}
-                          className="border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                          className="border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none"
                         >
                           <option value="pending">Pending</option>
                           <option value="confirmed">Confirmed</option>
@@ -173,24 +144,20 @@ export default function Admin() {
         {activeTab === 'restaurants' && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Restaurant Management</h2>
-              <button className="bg-orange-500 text-white px-6 py-3 rounded-2xl font-medium hover:bg-orange-600">
+              <h2 className="text-2xl font-bold">Restaurant Management ({restaurants.length})</h2>
+              <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-2xl font-medium">
                 + Add New Restaurant
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {restaurants.map((restaurant) => (
-                <div key={restaurant.id} className="bg-white rounded-3xl p-6 shadow-sm hover:shadow-md transition">
-                  <h3 className="font-semibold text-lg">{restaurant.name}</h3>
-                  <p className="text-gray-600 text-sm mt-1">{restaurant.cuisine}</p>
-                  <div className="mt-4 flex justify-between text-sm">
-                    <span>⭐ {restaurant.rating}</span>
-                    <span className="text-green-600">Active</span>
-                  </div>
-                  <div className="mt-6 flex gap-3">
-                    <button className="flex-1 py-2 border border-gray-300 rounded-2xl text-sm hover:bg-gray-50">Edit</button>
-                    <button className="flex-1 py-2 bg-red-500 text-white rounded-2xl text-sm hover:bg-red-600">Delete</button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {restaurants.map((r) => (
+                <div key={r.id} className="bg-white rounded-3xl p-6 shadow-sm">
+                  <h3 className="font-semibold text-xl">{r.name}</h3>
+                  <p className="text-gray-600">{r.cuisine}</p>
+                  <div className="mt-4 flex gap-4">
+                    <button className="flex-1 py-3 border border-gray-300 rounded-2xl text-sm hover:bg-gray-50">Edit Menu</button>
+                    <button className="flex-1 py-3 bg-red-100 text-red-600 rounded-2xl text-sm hover:bg-red-200">Disable</button>
                   </div>
                 </div>
               ))}
