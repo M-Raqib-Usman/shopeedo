@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const Order = require('./models/Order');
+const User = require('./models/User');
 
 dotenv.config();
 
@@ -18,29 +19,29 @@ connectDB();
 
 // Fake restaurants data (we can make this dynamic later)
 const restaurants = [
-  { 
-    id: 1, 
-    name: 'Pizza Point Jahanian', 
-    cuisine: 'Pizza • Fast Food', 
+  {
+    id: 1,
+    name: 'Pizza Point Jahanian',
+    cuisine: 'Pizza • Fast Food',
     rating: 4.6,
     deliveryTime: '20-35 min',
-    deliveryFee: 99 
+    deliveryFee: 99
   },
-  { 
-    id: 2, 
-    name: 'Biryani House', 
-    cuisine: 'Biryani • Pakistani', 
+  {
+    id: 2,
+    name: 'Biryani House',
+    cuisine: 'Biryani • Pakistani',
     rating: 4.8,
     deliveryTime: '25-40 min',
-    deliveryFee: 0 
+    deliveryFee: 0
   },
-  { 
-    id: 3, 
-    name: 'Burger Lab', 
-    cuisine: 'Burgers • American', 
+  {
+    id: 3,
+    name: 'Burger Lab',
+    cuisine: 'Burgers • American',
     rating: 4.4,
     deliveryTime: '15-30 min',
-    deliveryFee: 149 
+    deliveryFee: 149
   },
 ];
 
@@ -75,6 +76,78 @@ app.get('/api/orders', async (req, res) => {
   } catch (error) {
     console.error('Error fetching orders:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+  }
+});
+
+// Get orders for a specific logged-in user
+app.get('/api/orders/user/:email', async (req, res) => {
+  try {
+    const orders = await Order.find({ userEmail: req.params.email })
+                             .sort({ createdAt: -1 });
+    
+    console.log(`Fetched ${orders.length} orders for ${req.params.email}`);
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch user orders' });
+  }
+});
+
+// User Registration
+app.post('/api/users/register', async (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'User already exists with this email' });
+    }
+
+    const newUser = new User({
+      name,
+      email,
+      phone,
+      password,        // In real project, hash this password
+      role: email === "admin@shopeedo.com" ? "admin" : "customer"
+    });
+
+    await newUser.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user: { name, email, role: newUser.role }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Registration failed' });
+  }
+});
+
+// User Login
+app.post('/api/users/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'User not found' });
+    }
+
+    // Simple password check (in real app, use bcrypt)
+    if (user.password !== password) {
+      return res.status(400).json({ success: false, message: 'Invalid password' });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Login failed' });
   }
 });
 
