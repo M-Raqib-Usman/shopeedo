@@ -16,25 +16,50 @@ app.use(express.json());
 // Connect to MongoDB
 connectDB();
 
-// Get all restaurants (fake for now)
+// Fake restaurants data (we can make this dynamic later)
 const restaurants = [
-  { id: 1, name: 'Pizza Point Jahanian', cuisine: 'Pizza • Fast Food', rating: 4.6 },
-  { id: 2, name: 'Biryani House', cuisine: 'Biryani • Pakistani', rating: 4.8 },
-  { id: 3, name: 'Burger Lab', cuisine: 'Burgers • American', rating: 4.4 },
+  { 
+    id: 1, 
+    name: 'Pizza Point Jahanian', 
+    cuisine: 'Pizza • Fast Food', 
+    rating: 4.6,
+    deliveryTime: '20-35 min',
+    deliveryFee: 99 
+  },
+  { 
+    id: 2, 
+    name: 'Biryani House', 
+    cuisine: 'Biryani • Pakistani', 
+    rating: 4.8,
+    deliveryTime: '25-40 min',
+    deliveryFee: 0 
+  },
+  { 
+    id: 3, 
+    name: 'Burger Lab', 
+    cuisine: 'Burgers • American', 
+    rating: 4.4,
+    deliveryTime: '15-30 min',
+    deliveryFee: 149 
+  },
 ];
 
-// Routes
+// ====================== ROUTES ======================
+
+// Get all restaurants
 app.get('/api/restaurants', (req, res) => {
   res.json(restaurants);
 });
 
+// Get single restaurant with menu
 app.get('/api/restaurant/:id', (req, res) => {
   const restaurant = restaurants.find(r => r.id === parseInt(req.params.id));
   if (restaurant) {
     restaurant.menu = [
-      { id: 'p1', name: 'Margherita', price: 890, desc: 'Classic pizza' },
-      { id: 'p2', name: 'Pepperoni', price: 1090, desc: 'Spicy pepperoni' },
-      { id: 'p3', name: 'BBQ Chicken', price: 1190, desc: 'BBQ sauce, chicken' },
+      { id: 'p1', name: 'Margherita', price: 890, desc: 'Classic cheese pizza' },
+      { id: 'p2', name: 'Pepperoni', price: 1090, desc: 'Extra pepperoni' },
+      { id: 'p3', name: 'BBQ Chicken', price: 1190, desc: 'BBQ sauce, chicken, onions' },
+      { id: 'b1', name: 'Classic Beef Burger', price: 650, desc: 'Beef patty with cheese' },
     ];
     res.json(restaurant);
   } else {
@@ -42,7 +67,18 @@ app.get('/api/restaurant/:id', (req, res) => {
   }
 });
 
-// Place Order - Now saves to MongoDB
+// Get all orders (for Admin and User Orders page)
+app.get('/api/orders', async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+  }
+});
+
+// Place new order
 app.post('/api/orders', async (req, res) => {
   try {
     const { items, address, total, paymentMethod } = req.body;
@@ -58,7 +94,7 @@ app.post('/api/orders', async (req, res) => {
 
     await newOrder.save();
 
-    console.log('✅ New Order Saved to Database:', newOrder.orderId);
+    console.log('✅ New Order Saved:', newOrder.orderId);
 
     res.status(201).json({
       success: true,
@@ -69,6 +105,29 @@ app.post('/api/orders', async (req, res) => {
   } catch (error) {
     console.error('Order Error:', error);
     res.status(500).json({ success: false, message: 'Failed to place order' });
+  }
+});
+
+// Update order status (for Admin Panel)
+app.patch('/api/orders/:orderId/status', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    const updatedOrder = await Order.findOneAndUpdate(
+      { orderId },
+      { status },
+      { new: true }
+    );
+
+    if (updatedOrder) {
+      res.json({ success: true, order: updatedOrder });
+    } else {
+      res.status(404).json({ success: false, message: 'Order not found' });
+    }
+  } catch (error) {
+    console.error('Status update error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update order status' });
   }
 });
 

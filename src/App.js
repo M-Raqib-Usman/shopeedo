@@ -10,7 +10,8 @@ import Auth from './pages/Auth';
 import Cart from './pages/Cart';
 import RestaurantDetail from './pages/RestaurantDetail';
 import CategoryPage from './pages/CategoryPage';
-import Checkout from './pages/Checkout';        // ← Uncommented
+import Checkout from './pages/Checkout';    
+import Admin from './pages/Admin'   
 
 function App() {
   return (
@@ -73,6 +74,8 @@ function App() {
               <Footer />
             </div>
           } />
+
+          <Route path="/admin" element={<Admin />} />
 
           {/* Placeholder Pages */}
           <Route path="/orders" element={

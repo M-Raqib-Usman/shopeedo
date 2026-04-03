@@ -1,4 +1,3 @@
-// src/pages/Auth.js
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -30,16 +29,24 @@ export default function Auth() {
           : (formData.name || formData.email.split('@')[0] || "User"),
         email: formData.email,
         phone: formData.phone || '',
+        role: formData.email === "admin@shopeedo.com" ? "admin" : "customer"
       };
 
       // Save user to localStorage
       localStorage.setItem('shopeedo-user', JSON.stringify(userData));
 
-      toast.success(isLogin ? "🎉 Login successful! Welcome back." : "🎉 Account created successfully!");
+      toast.success(isLogin ? "🎉 Login successful!" : "🎉 Account created successfully!");
+
+      // Redirect logic
+      if (userData.role === "admin") {
+        toast.success("Welcome Admin! Redirecting to Dashboard...", { duration: 2000 });
+        setTimeout(() => navigate('/admin'), 1500);
+      } else {
+        navigate('/');
+      }
 
       setLoading(false);
-      navigate('/');           // Redirect to home
-    }, 1000);
+    }, 1200);
   };
 
   return (
@@ -132,6 +139,13 @@ export default function Auth() {
               {isLogin ? "Sign Up" : "Login"}
             </button>
           </p>
+
+          {/* Demo Credentials */}
+          <div className="mt-8 p-4 bg-gray-50 rounded-2xl text-xs text-gray-600">
+            <p className="font-medium mb-1">Demo Login:</p>
+            <p>Email: <span className="font-mono">admin@shopeedo.com</span></p>
+            <p>Password: anything</p>
+          </div>
         </div>
       </div>
     </div>
