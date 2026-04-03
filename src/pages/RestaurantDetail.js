@@ -52,7 +52,16 @@ export default function RestaurantDetail() {
 
   const handleAddToCart = (dish) => {
     if (!restaurant) return;
-
+  const savedUser = localStorage.getItem('shopeedo-user');
+  
+  if (!savedUser) {
+    toast.error("Please login to add items to cart", {
+      duration: 3000,
+    });
+    navigate('/auth');
+    return;
+  }
+  
     addToCart({
       id: dish._id || dish.id,
       name: dish.name,

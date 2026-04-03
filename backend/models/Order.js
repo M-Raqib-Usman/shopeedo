@@ -6,9 +6,10 @@ const orderSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  customerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+  userEmail: {                    // ← Main field for linking orders to user
+    type: String,
+    required: true,
+    index: true                     // For faster queries
   },
   items: [{
     name: { type: String, required: true },
@@ -32,10 +33,6 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ['pending', 'confirmed', 'preparing', 'ready', 'picked_up', 'delivered', 'cancelled'],
     default: 'pending'
-  },
-  assignedRider: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
   },
   createdAt: {
     type: Date,

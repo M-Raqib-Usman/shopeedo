@@ -1,15 +1,15 @@
 import { useCart } from '../context/CartContext';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { placeOrder } from '../services/api';
 
 export default function Checkout() {
+  const navigate = useNavigate();
   const { getGroupedCart, cartCount } = useCart();
 
   const [userAddress, setUserAddress] = useState("Jahanian, Punjab");
   const [loading, setLoading] = useState(false);
-
-  // Removed unused paymentMethod state to fix the warning
 
   // Load address from localStorage
   useEffect(() => {
@@ -27,10 +27,20 @@ export default function Checkout() {
   const handlePlaceOrder = async () => {
     if (cartCount === 0) return;
 
+    // Check if user is logged in
+    const savedUser = localStorage.getItem('shopeedo-user');
+    if (!savedUser) {
+      toast.error("Please login to place an order");
+      navigate('/auth');
+      return;
+    }
+
+    const user = JSON.parse(savedUser);
+
     setLoading(true);
 
     const orderData = {
-      items: groupedCart.flatMap(group =>
+      items: groupedCart.flatMap(group => 
         group.items.map(item => ({
           name: item.name,
           quantity: item.quantity,
@@ -40,8 +50,8 @@ export default function Checkout() {
       ),
       address: userAddress,
       total: grandTotal,
-      paymentMethod: "cash",                    // Hardcoded for simplicity
-      orderTime: new Date().toISOString()
+      paymentMethod: "cash",
+      userEmail: user.email                     // ← Sending user email
     };
 
     try {
@@ -72,10 +82,9 @@ export default function Checkout() {
         <div className="text-center">
           <div className="text-6xl mb-4">🛒</div>
           <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
-          <p className="text-gray-600 mb-6">Add some delicious items first!</p>
           <button 
-            onClick={() => window.location.href = '/'}
-            className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-semibold"
+            onClick={() => navigate('/')}
+            className="mt-6 bg-orange-500 text-white px-8 py-3 rounded-2xl font-semibold"
           >
             Browse Restaurants
           </button>
@@ -104,12 +113,12 @@ export default function Checkout() {
             </button>
           </div>
           <div className="bg-orange-50 p-5 rounded-2xl">
-            <p className="font-medium text-gray-800 leading-relaxed">{userAddress}</p>
+            <p className="font-medium text-gray-800">{userAddress}</p>
             <p className="text-sm text-gray-600 mt-2">Estimated delivery: 30-45 minutes</p>
           </div>
         </div>
 
-        {/* Order Summary */}
+        {/* Order Summary - same as before */}
         <div className="bg-white rounded-3xl p-6 mb-6 shadow-sm">
           <h2 className="font-semibold text-lg mb-5">Order Summary</h2>
           
@@ -142,7 +151,7 @@ export default function Checkout() {
           </div>
         </div>
 
-        {/* Payment Method - Simplified */}
+        {/* Payment Method */}
         <div className="bg-white rounded-3xl p-6 mb-8 shadow-sm">
           <h2 className="font-semibold text-lg mb-4">Payment Method</h2>
           <div className="p-4 border border-orange-500 rounded-2xl bg-orange-50 flex items-center gap-3">

@@ -81,10 +81,15 @@ app.get('/api/orders', async (req, res) => {
 // Place new order
 app.post('/api/orders', async (req, res) => {
   try {
-    const { items, address, total, paymentMethod } = req.body;
+    const { items, address, total, paymentMethod, userEmail } = req.body;
+
+    if (!userEmail) {
+      return res.status(400).json({ success: false, message: 'User email is required' });
+    }
 
     const newOrder = new Order({
       orderId: 'ORD' + Date.now().toString().slice(-6),
+      userEmail,                    // ← Save user email
       items,
       address,
       total,
@@ -94,7 +99,7 @@ app.post('/api/orders', async (req, res) => {
 
     await newOrder.save();
 
-    console.log('✅ New Order Saved:', newOrder.orderId);
+    console.log(`✅ New Order Saved: ${newOrder.orderId} for ${userEmail}`);
 
     res.status(201).json({
       success: true,
