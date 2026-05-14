@@ -2,36 +2,44 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store } from 'lucide-react';
 import { getCategories } from '../services/api';
+import { motion } from 'framer-motion';
+import Loader from '../components/Loader';
+import SmartImage from '../components/SmartImage';
 
 export default function Categories() {
   const navigate = useNavigate();
   const [dynamicCategories, setDynamicCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Emoji mapping for known category names
-  const emojiMap = {
-    'pizza': '🍕', 'biryani': '🍲', 'burgers': '🍔', 'burger': '🍔',
-    'groceries': '🛒', 'desserts': '🍰', 'dessert': '🍰', 'chinese': '🥡',
-    'fast food': '🍟', 'drinks': '🥤', 'beverages': '🥤', 'bbq': '🍖',
-    'karahi': '🍛', 'paratha': '🫓', 'shawarma': '🌯', 'sandwich': '🥪',
-    'pasta': '🍝', 'ice cream': '🍦', 'tea': '🍵', 'coffee': '☕',
-    'main course': '🍽️', 'appetizers': '🥗', 'sides': '🥙', 'starters': '🥗',
-    'seafood': '🦐', 'desi': '🍛', 'pakistani': '🇵🇰', 'naan': '🫓',
-    'rice': '🍚', 'salad': '🥗', 'soup': '🍜', 'juices': '🧃',
-    'smoothies': '🥤', 'chicken': '🍗', 'rolls': '🌯', 'wraps': '🌮',
+  // Image mapping for known category names
+  const imageMap = {
+    'pizza': 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+    'biryani': 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=400&q=80',
+    'burgers': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
+    'burger': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
+    'groceries': 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80',
+    'desserts': 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&q=80',
+    'dessert': 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&q=80',
+    'chinese': 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&q=80',
+    'fast food': 'https://images.unsplash.com/photo-1626229652216-e5bb7f511917?w=400&q=80',
+    'drinks': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&q=80',
+    'beverages': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&q=80',
+    'bbq': 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80',
+    'karahi': 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&q=80',
+    'shawarma': 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&q=80',
+    'default': 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=400&q=80'
   };
 
   // Static fallback categories
   const staticCategories = [
-    { name: 'Pizza', emoji: '🍕' }, { name: 'Biryani', emoji: '🍲' },
-    { name: 'Burgers', emoji: '🍔' }, { name: 'Karahi', emoji: '🍛' },
-    { name: 'BBQ', emoji: '🍖' }, { name: 'Shawarma', emoji: '🌯' },
-    { name: 'Sandwich', emoji: '🥪' }, { name: 'Pasta', emoji: '🍝' },
-    { name: 'Chinese', emoji: '🥡' }, { name: 'Fast Food', emoji: '🍟' },
-    { name: 'Desserts', emoji: '🍰' }, { name: 'Ice Cream', emoji: '🍦' },
-    { name: 'Drinks', emoji: '🥤' }, { name: 'Coffee', emoji: '☕' },
-    { name: 'Groceries', emoji: '🛒' }, { name: 'Seafood', emoji: '🦐' },
-    { name: 'Salad', emoji: '🥗' }, { name: 'Smoothies', emoji: '🥤' }
+    { name: 'Pizza', image: imageMap.pizza },
+    { name: 'Biryani', image: imageMap.biryani },
+    { name: 'Burgers', image: imageMap.burgers },
+    { name: 'Desserts', image: imageMap.desserts },
+    { name: 'Drinks', image: imageMap.drinks },
+    { name: 'Chinese', image: imageMap.chinese },
+    { name: 'BBQ', image: imageMap.bbq },
+    { name: 'Groceries', image: imageMap.groceries }
   ];
 
   useEffect(() => {
@@ -41,7 +49,7 @@ export default function Categories() {
         if (categoryData && categoryData.length > 0) {
           const mapped = categoryData.map(cat => ({
             name: cat,
-            emoji: emojiMap[cat.toLowerCase()] || '🍴'
+            image: imageMap[cat.toLowerCase()] || imageMap.default
           }));
           setDynamicCategories(mapped);
         }
@@ -57,29 +65,44 @@ export default function Categories() {
   const categoriesToShow = dynamicCategories.length > 0 ? dynamicCategories : staticCategories;
 
   if (loading) {
-    return <div className="pt-12 text-center text-lg">Loading categories...</div>;
+    return <Loader fullPage message="Loading fresh categories..." />;
   }
 
   return (
     <div className="pt-4 pb-12 bg-gray-50 min-h-screen">
       <div className="px-4 max-w-7xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">All Categories</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+        <h2 className="text-3xl font-black mb-8 text-gray-900 border-b-4 border-orange-500 w-fit pb-2">All Categories</h2>
+        <motion.div 
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.05 } }
+          }}
+          className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-5"
+        >
           {categoriesToShow.map((item) => {
             const name = typeof item === 'string' ? item : item.name;
-            const emoji = typeof item === 'string' ? emojiMap[item.toLowerCase()] : item.emoji;
+            const image = typeof item === 'string' ? (imageMap[item.toLowerCase()] || imageMap.default) : item.image;
             return (
-              <button
+              <motion.button
                 key={name}
+                variants={{
+                  hidden: { opacity: 0, scale: 0.8 },
+                  visible: { opacity: 1, scale: 1 }
+                }}
+                whileHover={{ scale: 1.05 }}
                 onClick={() => navigate(`/category/${name.toLowerCase()}`)}
-                className="flex flex-col items-center justify-center p-4 bg-white rounded-xl shadow-sm border hover:shadow-md transition aspect-square"
+                className="flex flex-col items-center justify-end h-40 bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-orange-200 transition-all duration-300 group overflow-hidden relative w-full"
               >
-                {emoji ? <span className="text-3xl mb-3">{emoji}</span> : <Store size={32} className="text-gray-500 mb-2" />}
-                <span className="mt-1 text-sm font-medium capitalize text-gray-800 text-center">{name}</span>
-              </button>
+                <div className="absolute inset-0 z-0">
+                  <SmartImage src={image} fallbackText={name} className="w-full h-full group-hover:scale-110 transition-transform duration-700 object-cover" />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10"></div>
+                <span className="relative z-20 text-[15px] font-black capitalize text-white text-center pb-4 tracking-wide group-hover:text-orange-400 transition-colors drop-shadow-md w-full">{name}</span>
+              </motion.button>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

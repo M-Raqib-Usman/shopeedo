@@ -7,44 +7,23 @@ import SmartImage from '../components/SmartImage';
 import Loader from '../components/Loader';
 import { motion } from 'framer-motion';
 
-// Emoji mapping for known category names
-const emojiMap = {
-  'pizza': '🍕',
-  'biryani': '🍲',
-  'burgers': '🍔',
-  'burger': '🍔',
-  'groceries': '🛒',
-  'desserts': '🍰',
-  'dessert': '🍰',
-  'chinese': '🥡',
-  'fast food': '🍟',
-  'drinks': '🥤',
-  'beverages': '🥤',
-  'bbq': '🍖',
-  'karahi': '🍛',
-  'paratha': '🫓',
-  'shawarma': '🌯',
-  'sandwich': '🥪',
-  'pasta': '🍝',
-  'ice cream': '🍦',
-  'tea': '🍵',
-  'coffee': '☕',
-  'main course': '🍽️',
-  'appetizers': '🥗',
-  'sides': '🥙',
-  'starters': '🥗',
-  'seafood': '🦐',
-  'desi': '🍛',
-  'pakistani': '🇵🇰',
-  'naan': '🫓',
-  'rice': '🍚',
-  'salad': '🥗',
-  'soup': '🍜',
-  'juices': '🧃',
-  'smoothies': '🥤',
-  'chicken': '🍗',
-  'rolls': '🌯',
-  'wraps': '🌮',
+// Image mapping for known category names
+const imageMap = {
+  'pizza': 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+  'biryani': 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=400&q=80',
+  'burgers': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
+  'burger': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
+  'groceries': 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80',
+  'desserts': 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&q=80',
+  'dessert': 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&q=80',
+  'chinese': 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&q=80',
+  'fast food': 'https://images.unsplash.com/photo-1626229652216-e5bb7f511917?w=400&q=80',
+  'drinks': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&q=80',
+  'beverages': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&q=80',
+  'bbq': 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80',
+  'karahi': 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&q=80',
+  'shawarma': 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&q=80',
+  'default': 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=400&q=80'
 };
 
 export default function Home() {
@@ -59,24 +38,14 @@ export default function Home() {
 
   // Static fallback categories
   const staticCategories = [
-    { name: 'Pizza', emoji: '🍕' },
-    { name: 'Biryani', emoji: '🍲' },
-    { name: 'Burgers', emoji: '🍔' },
-    { name: 'Karahi', emoji: '🍛' },
-    { name: 'BBQ', emoji: '🍖' },
-    { name: 'Shawarma', emoji: '🌯' },
-    { name: 'Sandwich', emoji: '🥪' },
-    { name: 'Pasta', emoji: '🍝' },
-    { name: 'Chinese', emoji: '🥡' },
-    { name: 'Fast Food', emoji: '🍟' },
-    { name: 'Desserts', emoji: '🍰' },
-    { name: 'Ice Cream', emoji: '🍦' },
-    { name: 'Drinks', emoji: '🥤' },
-    { name: 'Coffee', emoji: '☕' },
-    { name: 'Groceries', emoji: '🛒' },
-    { name: 'Seafood', emoji: '🦐' },
-    { name: 'Salad', emoji: '🥗' },
-    { name: 'Smoothies', emoji: '🥤' }
+    { name: 'Pizza', image: imageMap.pizza },
+    { name: 'Biryani', image: imageMap.biryani },
+    { name: 'Burgers', image: imageMap.burgers },
+    { name: 'Desserts', image: imageMap.desserts },
+    { name: 'Drinks', image: imageMap.drinks },
+    { name: 'Chinese', image: imageMap.chinese },
+    { name: 'BBQ', image: imageMap.bbq },
+    { name: 'Groceries', image: imageMap.groceries }
   ];
 
   // Fetch restaurants and categories from backend
@@ -93,7 +62,7 @@ export default function Home() {
         if (categoryData && categoryData.length > 0) {
           const mapped = categoryData.map(cat => ({
             name: cat,
-            emoji: emojiMap[cat.toLowerCase()] || '🍴'
+            image: imageMap[cat.toLowerCase()] || imageMap.default
           }));
           setDynamicCategories(mapped);
         }
@@ -178,21 +147,22 @@ export default function Home() {
         <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 sm:-mx-4 sm:px-4">
           {categoriesToShow.map((item, index) => {
             const name = typeof item === 'string' ? item : item.name;
-            const emoji = typeof item === 'string' ? emojiMap[item.toLowerCase()] : item.emoji;
+            const image = typeof item === 'string' ? (imageMap[item.toLowerCase()] || imageMap.default) : item.image;
             return (
               <motion.button
                 key={name}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
+                whileHover={{ scale: 1.05 }}
                 onClick={() => navigate(`/category/${name.toLowerCase()}`)}
-                className="flex-shrink-0 flex flex-col items-center justify-center w-24 h-24 bg-white rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:border-orange-200 transition-all duration-300 group"
+                className="flex-shrink-0 flex flex-col items-center justify-end w-28 h-36 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-orange-200 transition-all duration-300 group overflow-hidden relative"
               >
-                <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mb-1 group-hover:bg-orange-500 transition-colors duration-300">
-                  {emoji ? <span className="text-2xl group-hover:scale-125 transition-transform">{emoji}</span> : <Store size={24} className="text-orange-500 group-hover:text-white" />}
+                <div className="absolute inset-0 z-0">
+                  <SmartImage src={image} fallbackText={name} className="w-full h-full group-hover:scale-110 transition-transform duration-700" />
                 </div>
-                <span className="text-[11px] font-bold capitalize text-gray-700 text-center leading-tight group-hover:text-orange-600">{name}</span>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+                <span className="relative z-20 text-[13px] font-black capitalize text-white text-center pb-4 tracking-wide group-hover:text-orange-400 transition-colors drop-shadow-md">{name}</span>
               </motion.button>
             );
           })}

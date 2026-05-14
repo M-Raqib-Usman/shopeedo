@@ -732,6 +732,127 @@ app.get('/api/menu/category/:name', async (req, res) => {
   }
 });
 
+// ==========================================
+// RATING SYSTEM
+// ==========================================
+
+// Rate an order and update restaurant average
+app.post('/api/orders/:id/rate', async (req, res) => {
+  try {
+    const { rating } = req.body;
+    const orderId = req.params.id;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ success: false, message: 'Invalid rating value' });
+    }
+
+    const order = await Order.findOne({ orderId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ success: false, message: 'Can only rate delivered orders' });
+    }
+
+    if (order.isRated) {
+      return res.status(400).json({ success: false, message: 'Order is already rated' });
+    }
+
+    // 1. Update Order
+    order.isRated = true;
+    order.rating = rating;
+    await order.save();
+
+    // 2. Find associated restaurants and update their ratings
+    // An order might have items from multiple restaurants. We will apply the rating to all involved restaurants for simplicity, or just the primary one.
+    const uniqueRestaurantIds = [...new Set(order.items.map(i => i.restaurantId))];
+    
+    for (const restIdStr of uniqueRestaurantIds) {
+      let restaurant = null;
+      if (require('mongoose').Types.ObjectId.isValid(restIdStr)) {
+        restaurant = await Restaurant.findById(restIdStr);
+      }
+      if (!restaurant) {
+        restaurant = await Restaurant.findOne({ id: isNaN(parseInt(restIdStr)) ? 0 : parseInt(restIdStr) });
+      }
+
+      if (restaurant) {
+        const currentAvg = restaurant.rating || 4.0;
+        const currentCount = restaurant.ratingCount || 1;
+        
+        // Calculate new average: ((oldAvg * count) + newRating) / (count + 1)
+        const newAvg = ((currentAvg * currentCount) + rating) / (currentCount + 1);
+        
+        restaurant.rating = parseFloat(newAvg.toFixed(1));
+        restaurant.ratingCount = currentCount + 1;
+        await restaurant.save();
+      }
+    }
+
+    res.json({ success: true, message: 'Rating submitted successfully' });
+  } catch (error) {
+    console.error('Error submitting rating:', error);
+    res.status(500).json({ success: false, message: 'Failed to submit rating' });
+  }
+});
+
+// ==========================================
+// PAYMENT MANAGEMENT
+// ==========================================
+const PaymentMethod = require('./models/PaymentMethod');
+
+// Get saved cards for user
+app.get('/api/payments/:email', async (req, res) => {
+  try {
+    const cards = await PaymentMethod.find({ userEmail: req.params.email }).sort({ createdAt: -1 });
+    res.json(cards);
+  } catch (error) {
+    console.error('Error fetching cards:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch payment methods' });
+  }
+});
+
+// Add a new card
+app.post('/api/payments', async (req, res) => {
+  try {
+    const { userEmail, cardholderName, cardNumber, expiryDate, cardType } = req.body;
+    
+    // In a real app, we would tokenize this via Stripe. Here we just mask it.
+    const last4 = cardNumber.slice(-4);
+    const cardNumberMasked = `**** **** **** ${last4}`;
+
+    const newCard = new PaymentMethod({
+      userEmail,
+      cardholderName,
+      cardNumberMasked,
+      expiryDate,
+      cardType: cardType || 'Visa'
+    });
+
+    await newCard.save();
+    res.status(201).json({ success: true, card: newCard });
+  } catch (error) {
+    console.error('Error adding card:', error);
+    res.status(500).json({ success: false, message: 'Failed to add payment method' });
+  }
+});
+
+// Delete a card
+app.delete('/api/payments/:id', async (req, res) => {
+  try {
+    const deleted = await PaymentMethod.findByIdAndDelete(req.params.id);
+    if (deleted) {
+      res.json({ success: true, message: 'Card deleted successfully' });
+    } else {
+      res.status(404).json({ success: false, message: 'Card not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting card:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete payment method' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Backend server running on http://localhost:${PORT}`);
 });

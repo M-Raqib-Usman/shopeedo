@@ -56,6 +56,14 @@ const orderSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'preparing', 'ready', 'picked_up', 'delivered', 'cancelled'],
     default: 'pending'
   },
+  isRated: {
+    type: Boolean,
+    default: false
+  },
+  rating: {
+    type: Number,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -6,8 +6,16 @@ const SmartImage = ({ src, alt, className, fallbackText = 'Image' }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // Placeholder images for different types if needed
-  const placeholder = `https://via.placeholder.com/400x300?text=${encodeURIComponent(fallbackText)}`;
+  // Premium pattern-based fallback
+  const FallbackPattern = () => (
+    <div className="w-full h-full bg-orange-50 flex flex-col items-center justify-center p-6 text-center">
+      <div className="w-16 h-16 bg-orange-100 rounded-3xl flex items-center justify-center mb-3 text-orange-500">
+        <ImageOff size={32} />
+      </div>
+      <p className="text-sm font-black text-orange-900 uppercase tracking-tighter leading-none">{fallbackText}</p>
+      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#f97316 0.5px, transparent 0.5px)', backgroundSize: '10px 10px' }} />
+    </div>
+  );
 
   return (
     <div className={`relative overflow-hidden bg-gray-100 ${className}`}>
@@ -25,11 +33,8 @@ const SmartImage = ({ src, alt, className, fallbackText = 'Image' }) => {
       </AnimatePresence>
 
       {/* Error State */}
-      {error ? (
-        <div className="flex flex-col items-center justify-center w-full h-full text-gray-400 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg">
-          <ImageOff size={32} strokeWidth={1.5} />
-          <span className="text-xs mt-2 font-medium">Image not available</span>
-        </div>
+      {error || !src ? (
+        <FallbackPattern />
       ) : (
         <motion.img
           initial={{ opacity: 0, scale: 1.05 }}
@@ -38,7 +43,7 @@ const SmartImage = ({ src, alt, className, fallbackText = 'Image' }) => {
             scale: loading ? 1.05 : 1 
           }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          src={src || placeholder}
+          src={src}
           alt={alt}
           className={`w-full h-full object-cover ${loading ? 'invisible' : 'visible'}`}
           onLoad={() => setLoading(false)}

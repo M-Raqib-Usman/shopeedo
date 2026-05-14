@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import { getRestaurants } from '../services/api';
 import { useCart } from '../context/CartContext';
+import SmartImage from '../components/SmartImage';
+import { motion } from 'framer-motion';
+import Loader from '../components/Loader';
 
 export default function Restaurants() {
   const navigate = useNavigate();
@@ -35,51 +38,67 @@ export default function Restaurants() {
   };
 
   if (loading) {
-    return <div className="pt-12 text-center text-lg">Loading restaurants...</div>;
+    return <Loader fullPage message="Loading best restaurants..." />;
   }
 
   return (
     <div className="pt-4 pb-12 bg-gray-50 min-h-screen">
       <div className="px-4 max-w-7xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">All Restaurants</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <h2 className="text-3xl font-black mb-8 text-gray-900 border-b-4 border-orange-500 w-fit pb-2">All Restaurants</h2>
+        <motion.div 
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.1 } }
+          }}
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+        >
           {restaurants.map((restaurant) => {
             const itemCount = getRestaurantItemCount(restaurant.id);
             return (
-              <div
+              <motion.div
                 key={restaurant.id}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                whileHover={{ y: -8, transition: { duration: 0.2 } }}
                 onClick={() => navigate(`/restaurant/${restaurant.id}`)}
-                className="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all cursor-pointer border border-gray-100"
+                className="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all cursor-pointer border border-gray-100 group"
               >
-                <div className="relative">
-                  <img
-                    src={restaurant.image || `https://via.placeholder.com/300x180?text=${restaurant.name}`}
+                <div className="relative overflow-hidden h-48">
+                  <SmartImage
+                    src={restaurant.image}
                     alt={restaurant.name}
-                    className="w-full h-44 object-cover"
+                    className="w-full h-full transition-transform duration-500 group-hover:scale-110"
+                    fallbackText={restaurant.name}
                   />
                   <div className="absolute top-3 right-3 bg-white px-3 py-1 rounded-2xl text-xs font-bold shadow flex items-center gap-1">
                     ⭐ {restaurant.rating}
                   </div>
                   {itemCount > 0 && (
-                    <div className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-1">
+                    <div className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-1 shadow-lg shadow-orange-500/30">
                       <ShoppingCart size={14} /> {itemCount}
                     </div>
                   )}
                 </div>
-                <div className="p-4">
-                  <h4 className="font-semibold text-lg truncate">{restaurant.name}</h4>
-                  <p className="text-sm text-gray-600 mt-1 line-clamp-1">{restaurant.cuisine}</p>
-                  <div className="flex justify-between mt-4 text-sm text-gray-700">
-                    <span>⏱ {restaurant.deliveryTime || '25-40 min'}</span>
-                    <span className={restaurant.deliveryFee === 'Free' || restaurant.deliveryFee === 0 ? 'text-green-600 font-medium' : ''}>
-                      {restaurant.deliveryFee ? `Rs. ${restaurant.deliveryFee}` : 'Free'}
-                    </span>
+                <div className="p-5">
+                  <h4 className="font-bold text-xl truncate text-gray-900">{restaurant.name}</h4>
+                  <p className="text-xs font-semibold text-orange-600 mt-1 mb-4 uppercase tracking-wider line-clamp-1">{restaurant.cuisine}</p>
+                  
+                  <div className="flex items-center gap-4 text-xs font-bold text-gray-500 bg-gray-50 p-2.5 rounded-2xl">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-orange-500">⏱</span> {restaurant.deliveryTime || '25-40 min'}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-orange-500">🚲</span> {restaurant.deliveryFee === 0 || restaurant.deliveryFee === 'Free' ? 'Free' : (typeof restaurant.deliveryFee === 'number' ? `Rs. ${restaurant.deliveryFee}` : restaurant.deliveryFee)}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

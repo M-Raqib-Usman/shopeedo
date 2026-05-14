@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { User, MapPin, Mail, Phone, LogOut, Package, Edit2, Save, X } from 'lucide-react';
+import { User, MapPin, Mail, Phone, LogOut, Package, Edit2, Save, X, CreditCard, Plus, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { updateProfile } from '../services/api';
+import { updateProfile, getPaymentMethods, addPaymentMethod, deletePaymentMethod } from '../services/api';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -14,6 +14,10 @@ const Profile = () => {
     phone: ''
   });
   const [loading, setLoading] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [showAddCard, setShowAddCard] = useState(false);
+  const [newCard, setNewCard] = useState({ cardholderName: '', cardNumber: '', expiryDate: '' });
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('shopeedo-user');
@@ -34,7 +38,61 @@ const Profile = () => {
     } else {
       setAddress("Sahiwal, Punjab");
     }
+
+    if (savedUser) {
+      fetchPaymentMethods(JSON.parse(savedUser).email);
+    }
   }, [navigate]);
+
+  const fetchPaymentMethods = async (email) => {
+    try {
+      const methods = await getPaymentMethods(email);
+      setPaymentMethods(methods);
+    } catch (error) {
+      console.error('Failed to fetch payment methods:', error);
+    }
+  };
+
+  const handleAddCard = async (e) => {
+    e.preventDefault();
+    if (!newCard.cardNumber || newCard.cardNumber.length < 16) {
+      toast.error('Please enter a valid 16-digit card number');
+      return;
+    }
+    setPaymentLoading(true);
+    try {
+      const result = await addPaymentMethod({
+        userEmail: user.email,
+        cardholderName: newCard.cardholderName,
+        cardNumber: newCard.cardNumber,
+        expiryDate: newCard.expiryDate,
+        cardType: newCard.cardNumber.startsWith('4') ? 'Visa' : 'Mastercard'
+      });
+      if (result.success) {
+        toast.success('Card added securely');
+        setShowAddCard(false);
+        setNewCard({ cardholderName: '', cardNumber: '', expiryDate: '' });
+        fetchPaymentMethods(user.email);
+      }
+    } catch (error) {
+      toast.error('Failed to add card');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const handleDeleteCard = async (id) => {
+    if (!window.confirm('Remove this card?')) return;
+    try {
+      const result = await deletePaymentMethod(id);
+      if (result.success) {
+        toast.success('Card removed');
+        fetchPaymentMethods(user.email);
+      }
+    } catch (error) {
+      toast.error('Failed to remove card');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('shopeedo-user');
@@ -191,6 +249,88 @@ const Profile = () => {
             )}
           </div>
         </form>
+
+        <h2 className="text-xl font-bold text-gray-900 mt-10 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CreditCard size={24} className="text-gray-800" /> Payment Methods
+          </div>
+          {!showAddCard && (
+            <button 
+              onClick={() => setShowAddCard(true)}
+              className="text-orange-600 bg-orange-50 hover:bg-orange-100 p-2 rounded-xl text-sm font-bold flex items-center gap-1 transition"
+            >
+              <Plus size={16} /> Add Card
+            </button>
+          )}
+        </h2>
+
+        {showAddCard && (
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold">Add New Card</h3>
+              <button onClick={() => setShowAddCard(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleAddCard} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Cardholder Name</label>
+                <input 
+                  type="text" required
+                  value={newCard.cardholderName} onChange={e => setNewCard({...newCard, cardholderName: e.target.value})}
+                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="John Doe"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Card Number</label>
+                <input 
+                  type="text" required maxLength="16"
+                  value={newCard.cardNumber} onChange={e => setNewCard({...newCard, cardNumber: e.target.value.replace(/\D/g, '')})}
+                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono tracking-widest"
+                  placeholder="0000 0000 0000 0000"
+                />
+              </div>
+              <div className="w-1/2">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Expiry Date</label>
+                <input 
+                  type="text" required maxLength="5"
+                  value={newCard.expiryDate} onChange={e => {
+                    let val = e.target.value.replace(/\D/g, '');
+                    if (val.length >= 2) val = val.substring(0,2) + '/' + val.substring(2,4);
+                    setNewCard({...newCard, expiryDate: val});
+                  }}
+                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono"
+                  placeholder="MM/YY"
+                />
+              </div>
+              <button type="submit" disabled={paymentLoading} className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition">
+                {paymentLoading ? 'Saving...' : 'Save Securely'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {paymentMethods.length === 0 && !showAddCard ? (
+            <p className="text-gray-500 text-sm">No saved payment methods. Add a card to speed up your checkout.</p>
+          ) : (
+            paymentMethods.map(card => (
+              <div key={card._id} className="flex items-center justify-between p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition">
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-8 rounded bg-gradient-to-r ${card.cardType === 'Visa' ? 'from-blue-600 to-blue-800' : 'from-red-500 to-yellow-500'} flex items-center justify-center text-white font-bold italic text-xs shadow-sm`}>
+                    {card.cardType}
+                  </div>
+                  <div>
+                    <p className="font-mono font-bold text-gray-900 tracking-widest">{card.cardNumberMasked}</p>
+                    <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">Expires {card.expiryDate}</p>
+                  </div>
+                </div>
+                <button onClick={() => handleDeleteCard(card._id)} className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition">
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
 
         <div className="mt-12 pt-8 border-t flex flex-wrap gap-4">
           <button 

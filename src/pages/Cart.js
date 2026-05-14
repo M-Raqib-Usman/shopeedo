@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { Plus, Minus, Trash2, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import SmartImage from '../components/SmartImage';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -52,16 +54,18 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-40">
+      <div className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-5 flex items-center justify-between">
           <button 
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-700 hover:text-black"
+            className="flex items-center gap-2 text-gray-700 hover:text-orange-600 transition"
           >
-            <ArrowLeft size={24} />
-            <span className="font-medium">Cart</span>
+            <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center hover:bg-orange-50 transition">
+              <ArrowLeft size={20} />
+            </div>
+            <span className="font-bold text-lg">My Cart</span>
           </button>
-          <div className="text-sm text-gray-500">
+          <div className="bg-orange-50 text-orange-600 px-4 py-2 rounded-2xl font-bold text-sm">
             {groupedCart.reduce((sum, g) => sum + g.items.length, 0)} items
           </div>
         </div>
@@ -82,47 +86,63 @@ export default function Cart() {
               {group.restaurantName}
             </div>
 
-            <div className="divide-y">
-              {group.items.map((item) => (
-                <div key={item.id} className="p-6 flex gap-4">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{item.name}</h3>
-                    <p className="text-orange-600 font-medium mt-1">
-                      Rs. {item.price} × {item.quantity}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-3">
-                    <div className="font-bold text-lg text-orange-600">
-                      Rs. {item.price * item.quantity}
+            <div className="divide-y divide-gray-100">
+              <AnimatePresence>
+                {group.items.map((item) => (
+                  <motion.div 
+                    key={item.id} 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="p-6 flex gap-5 items-center"
+                  >
+                    <div className="w-20 h-20 bg-gray-50 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm">
+                      <SmartImage
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full"
+                        fallbackText={item.name}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg text-gray-900 leading-tight mb-1">{item.name}</h3>
+                      <p className="text-gray-500 font-medium text-sm">
+                        Rs. {item.price} × {item.quantity}
+                      </p>
                     </div>
 
-                    {/* Quantity Controls */}
-                    <div className="flex items-center bg-gray-100 rounded-2xl">
+                    <div className="flex flex-col items-end gap-3">
+                      <div className="font-black text-xl text-orange-600 tracking-tight">
+                        Rs. {item.price * item.quantity}
+                      </div>
+
+                      {/* Quantity Controls */}
+                      <div className="flex items-center bg-gray-50 rounded-2xl p-1 border border-gray-100">
+                        <button
+                          onClick={() => handleQuantityChange(item.id, group.restaurantId, item.quantity - 1)}
+                          className="w-8 h-8 flex items-center justify-center hover:bg-white hover:shadow-sm rounded-xl text-gray-600 transition"
+                        >
+                          <Minus size={16} strokeWidth={2.5} />
+                        </button>
+                        <span className="w-10 text-center font-bold text-gray-800">{item.quantity}</span>
+                        <button
+                          onClick={() => handleQuantityChange(item.id, group.restaurantId, item.quantity + 1)}
+                          className="w-8 h-8 flex items-center justify-center hover:bg-white hover:shadow-sm rounded-xl text-orange-600 transition"
+                        >
+                          <Plus size={16} strokeWidth={2.5} />
+                        </button>
+                      </div>
+
                       <button
-                        onClick={() => handleQuantityChange(item.id, group.restaurantId, item.quantity - 1)}
-                        className="w-10 h-10 flex items-center justify-center hover:bg-gray-200 rounded-l-2xl transition"
+                        onClick={() => handleRemove(item.id, group.restaurantId, item.name)}
+                        className="text-red-400 hover:text-red-600 text-xs font-bold uppercase tracking-wider flex items-center gap-1 mt-1 transition"
                       >
-                        <Minus size={18} />
-                      </button>
-                      <span className="w-12 text-center font-semibold">{item.quantity}</span>
-                      <button
-                        onClick={() => handleQuantityChange(item.id, group.restaurantId, item.quantity + 1)}
-                        className="w-10 h-10 flex items-center justify-center hover:bg-gray-200 rounded-r-2xl transition"
-                      >
-                        <Plus size={18} />
+                        <Trash2 size={14} /> Remove
                       </button>
                     </div>
-
-                    <button
-                      onClick={() => handleRemove(item.id, group.restaurantId, item.name)}
-                      className="text-red-500 hover:text-red-600 text-sm flex items-center gap-1 mt-1"
-                    >
-                      <Trash2 size={16} /> Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
 
             <div className="px-6 py-4 bg-gray-50 border-t flex justify-between text-sm">

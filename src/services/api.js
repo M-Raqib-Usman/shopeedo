@@ -49,3 +49,34 @@ export const updateProfile = async (profileData) => {
   });
   return response.json();
 };
+
+export const rateOrder = async (orderId, rating) => {
+  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/rate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rating }),
+  });
+  return response.json();
+};
+
+export const getPaymentMethods = async (email) => {
+  const response = await fetch(`${API_BASE_URL}/payments/${email}`);
+  if (!response.ok) throw new Error('Failed to fetch payment methods');
+  return response.json();
+};
+
+export const addPaymentMethod = async (paymentData) => {
+  const response = await fetch(`${API_BASE_URL}/payments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(paymentData),
+  });
+  return response.json();
+};
+
+export const deletePaymentMethod = async (id) => {
+  const response = await fetch(`${API_BASE_URL}/payments/${id}`, {
+    method: 'DELETE',
+  });
+  return response.json();
+};

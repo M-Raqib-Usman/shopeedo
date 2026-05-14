@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { MapPin } from 'lucide-react';
+import { MapPin, Star } from 'lucide-react';
 import MapContainer from '../components/MapContainer';
-import { getUserOrders } from '../services/api';
+import { getUserOrders, rateOrder } from '../services/api';
 
 export default function Orders() {
   const navigate = useNavigate();
@@ -46,6 +46,17 @@ export default function Orders() {
       setOrders([]);
     } finally {
       if (!silent) setLoading(false);
+    }
+  };
+
+  const handleRateOrder = async (orderId, rating) => {
+    try {
+      await rateOrder(orderId, rating);
+      toast.success('Thank you for rating your order! ⭐');
+      // Update local state to hide the rating UI
+      setOrders(orders.map(o => o.orderId === orderId ? { ...o, isRated: true, rating } : o));
+    } catch (error) {
+      toast.error('Failed to submit rating. Try again later.');
     }
   };
 
@@ -175,9 +186,9 @@ export default function Orders() {
                   <div className="flex gap-2 items-center">
                     <span className="text-gray-500 font-medium">Payment:</span>
                     <span className={`uppercase text-xs font-bold px-2 py-0.5 rounded ${
-                      order.paymentStatus === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                      (order.paymentStatus === 'completed' || order.status === 'delivered') ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
                     }`}>
-                      {order.paymentMethod} ({order.paymentStatus})
+                      {order.paymentMethod} {order.status === 'delivered' ? '(completed)' : `(${order.paymentStatus})`}
                     </span>
                   </div>
                   <div className="text-right">
@@ -185,6 +196,29 @@ export default function Orders() {
                     <span className="font-bold text-lg">Rs. {order.total}</span>
                   </div>
                 </div>
+
+                {order.status === 'delivered' && !order.isRated && (
+                  <div className="mt-4 pt-4 border-t flex flex-col items-center bg-orange-50/50 p-4 rounded-xl border border-orange-100">
+                    <p className="text-sm font-bold text-gray-800 mb-3">How was your food? Rate the restaurant:</p>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => handleRateOrder(order.orderId, star)}
+                          className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:bg-orange-100 hover:scale-110 transition-all text-gray-300 hover:text-orange-500 focus:outline-none"
+                        >
+                          <Star fill="currentColor" size={20} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {order.status === 'delivered' && order.isRated && (
+                  <div className="mt-4 pt-4 border-t flex items-center justify-center gap-2 text-sm font-bold text-orange-600 bg-orange-50 py-3 rounded-xl">
+                    <Star fill="currentColor" size={16} /> You rated this order {order.rating} stars
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { Store, Package, CheckCircle, Clock, LogOut, Camera, Upload, X, Printer, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import SmartImage from '../components/SmartImage';
 
 const VendorDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -313,30 +314,40 @@ const VendorDashboard = () => {
             <div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {menuItems.map(item => (
-                  <div key={item._id} className="bg-white rounded-2xl shadow-sm border overflow-hidden flex flex-col">
-                    <div className="h-40 bg-gray-100 relative">
+                  <motion.div 
+                    key={item._id} 
+                    whileHover={{ y: -5 }}
+                    className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-xl transition-all duration-300 group"
+                  >
+                    <div className="h-44 bg-gray-100 relative overflow-hidden">
                       {item.image ? (
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        <SmartImage 
+                          src={item.image} 
+                          alt={item.name} 
+                          className="w-full h-full transition-transform duration-500 group-hover:scale-110" 
+                          fallbackText={item.name}
+                        />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <Package size={40} />
+                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-orange-50">
+                          <Package size={40} className="text-orange-300 mb-2" />
+                          <span className="text-xs font-bold text-orange-400 uppercase tracking-widest">No Image</span>
                         </div>
                       )}
                       <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-bold text-gray-700">
                         {item.category}
                       </div>
                     </div>
-                    <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="font-bold text-lg">{item.name}</h3>
-                      <p className="text-emerald-600 font-bold mt-1 mb-4">Rs. {item.price}</p>
+                    <div className="p-5 flex-1 flex flex-col">
+                      <h3 className="font-bold text-xl">{item.name}</h3>
+                      <p className="text-orange-600 font-black mt-1 mb-5 text-lg">Rs. {item.price}</p>
                       <button 
                         onClick={() => deleteMenuItem(item._id)} 
-                        className="mt-auto bg-red-50 text-red-600 hover:bg-red-100 py-2 rounded-xl text-sm font-medium transition"
+                        className="mt-auto bg-red-50 text-red-500 hover:bg-red-500 hover:text-white py-3 rounded-2xl text-sm font-bold transition-all shadow-sm"
                       >
                         Delete Item
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 

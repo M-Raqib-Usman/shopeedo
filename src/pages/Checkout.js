@@ -2,7 +2,7 @@ import { useCart } from '../context/CartContext';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { placeOrder } from '../services/api';
+import { placeOrder, getPaymentMethods } from '../services/api';
 import MapContainer from '../components/MapContainer';
 import axios from 'axios';
 import { Navigation } from 'lucide-react';
@@ -17,12 +17,24 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' or 'card'
   const [cardDetails, setCardDetails] = useState('');
   const [paymentStatus] = useState('pending');
+  const [savedCards, setSavedCards] = useState([]);
+  const [selectedCardId, setSelectedCardId] = useState('');
 
-  // Load address from localStorage
+  // Load address and cards
   useEffect(() => {
     const savedAddress = localStorage.getItem('shopeedo-address');
     if (savedAddress) {
       setUserAddress(savedAddress);
+    }
+    const savedUser = localStorage.getItem('shopeedo-user');
+    if (savedUser) {
+      const email = JSON.parse(savedUser).email;
+      getPaymentMethods(email).then(cards => {
+        setSavedCards(cards);
+        if (cards.length > 0) {
+          setSelectedCardId(cards[0]._id);
+        }
+      }).catch(console.error);
     }
   }, []);
 
@@ -256,23 +268,69 @@ export default function Checkout() {
                 </div>
                 <div>
                   <p className="font-medium flex items-center gap-2">Credit / Debit Card</p>
-                  <p className="text-xs text-gray-500">Mock payment processing</p>
+                  <p className="text-xs text-gray-500">Pay securely using your card</p>
                 </div>
               </div>
 
               {paymentMethod === 'card' && (
-                <div className="mt-4 ml-8 animate-fade-in">
-                  <input 
-                    type="text" 
-                    placeholder="Card Number (16 digits)" 
-                    className="w-full p-3 border rounded-xl mb-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={cardDetails}
-                    onChange={(e) => setCardDetails(e.target.value)}
-                  />
-                  <div className="flex gap-3">
-                    <input type="text" placeholder="MM/YY" className="w-1/2 p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" />
-                    <input type="text" placeholder="CVC" className="w-1/2 p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" />
-                  </div>
+                <div className="mt-4 ml-8 animate-fade-in space-y-3">
+                  {savedCards.length > 0 && (
+                    <div className="mb-4 space-y-2">
+                      <p className="text-xs font-bold text-gray-500 uppercase">Saved Cards</p>
+                      {savedCards.map(card => (
+                        <div 
+                          key={card._id}
+                          onClick={(e) => { e.stopPropagation(); setSelectedCardId(card._id); }}
+                          className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
+                            selectedCardId === card._id ? 'border-orange-500 bg-white shadow-sm' : 'border-gray-200 bg-gray-50'
+                          }`}
+                        >
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                            selectedCardId === card._id ? 'border-orange-500' : 'border-gray-300'
+                          }`}>
+                            {selectedCardId === card._id && <div className="w-2 h-2 bg-orange-500 rounded-full"></div>}
+                          </div>
+                          <div className={`w-10 h-6 rounded bg-gradient-to-r ${card.cardType === 'Visa' ? 'from-blue-600 to-blue-800' : 'from-red-500 to-yellow-500'} flex items-center justify-center text-white font-bold italic text-[10px]`}>
+                            {card.cardType}
+                          </div>
+                          <span className="font-mono text-sm tracking-widest">{card.cardNumberMasked}</span>
+                        </div>
+                      ))}
+                      
+                      <div 
+                        onClick={(e) => { e.stopPropagation(); setSelectedCardId('new'); }}
+                        className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
+                          selectedCardId === 'new' ? 'border-orange-500 bg-white shadow-sm' : 'border-gray-200 bg-gray-50'
+                        }`}
+                      >
+                         <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                            selectedCardId === 'new' ? 'border-orange-500' : 'border-gray-300'
+                          }`}>
+                            {selectedCardId === 'new' && <div className="w-2 h-2 bg-orange-500 rounded-full"></div>}
+                          </div>
+                          <span className="text-sm font-medium">Use a new card</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {(selectedCardId === 'new' || savedCards.length === 0) && (
+                    <div className="mt-3">
+                      <input 
+                        type="text" 
+                        placeholder="Card Number (16 digits)" 
+                        className="w-full p-3 border rounded-xl mb-3 focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono"
+                        value={cardDetails}
+                        onChange={(e) => setCardDetails(e.target.value)}
+                      />
+                      <div className="flex gap-3">
+                        <input type="text" placeholder="MM/YY" className="w-1/2 p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono" />
+                        <input type="text" placeholder="CVC" className="w-1/2 p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono" />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                        <span className="text-orange-500">🔒</span> Card details are securely processed.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -104,16 +104,23 @@ const vendors = [
   }
 ];
 
+const riders = [
+  { name: 'Ali Rider', email: 'ali@shopeedo.com', password: 'password123', role: 'rider', isApproved: true, phone: '03009990001', vehicleType: 'Bike' },
+  { name: 'Usman Rider', email: 'usman@shopeedo.com', password: 'password123', role: 'rider', isApproved: true, phone: '03009990002', vehicleType: 'Car' }
+];
+
 async function seed() {
   try {
     await mongoose.connect(MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
+    // 1. Clean up ALL existing vendor data completely
+    console.log('🧹 Clearing old restaurants and vendor data...');
+    await User.deleteMany({ role: { $in: ['vendor', 'rider'] } });
+    await Restaurant.deleteMany({});
+    await MenuItem.deleteMany({});
+
     for (const v of vendors) {
-      // 1. Clean up existing data for this vendor
-      await User.deleteOne({ email: v.user.email });
-      await Restaurant.deleteOne({ vendorEmail: v.user.email });
-      await MenuItem.deleteMany({ vendorEmail: v.user.email });
 
       // 2. Create User
       const user = new User(v.user);
@@ -150,7 +157,13 @@ async function seed() {
         await item.save();
       }
 
-      console.log(`✅ Seeded: ${v.restaurant.name} (${v.user.email})`);
+      console.log(`✅ Seeded Vendor: ${v.restaurant.name} (${v.user.email} / ${v.user.password})`);
+    }
+
+    for (const r of riders) {
+      const riderUser = new User(r);
+      await riderUser.save();
+      console.log(`✅ Seeded Rider: ${r.name} (${r.email} / ${r.password})`);
     }
 
     console.log('Done! All vendors seeded successfully.');
