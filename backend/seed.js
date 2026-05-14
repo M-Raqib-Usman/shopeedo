@@ -35,7 +35,7 @@ const seedData = async () => {
     const restaurants = [
       {
         id: 1,
-        name: 'Pizza Point Jahanian',
+        name: 'Pizza Point Sahiwal',
         cuisine: 'Pizza • Fast Food',
         rating: 4.6,
         deliveryTime: '20-35 min',

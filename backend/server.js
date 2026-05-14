@@ -329,7 +329,7 @@ app.post('/api/orders', async (req, res) => {
           
           // Attach vendorEmail to all items from this restaurant
           itemsWithEmails.forEach(item => {
-            if (item.restaurantId === restId) {
+            if (item.restaurantId.toString() === restId.toString()) {
               item.restaurantEmail = restaurant.vendorEmail;
             }
           });
@@ -578,12 +578,20 @@ app.patch('/api/admin/riders/:id/approve', async (req, res) => {
 app.get('/api/orders/vendor/:email', async (req, res) => {
   try {
     const vendorEmail = req.params.email;
-    // Find restaurants owned by this vendor
+    
+    // Find all restaurants owned by this vendor to get their IDs
     const vendorRestaurants = await Restaurant.find({ vendorEmail });
-    const restaurantIds = vendorRestaurants.map(r => r.id);
+    const restaurantIds = vendorRestaurants.map(r => r.id.toString());
+    const restaurantObjectIds = vendorRestaurants.map(r => r._id.toString());
+    const allRelevantIds = [...restaurantIds, ...restaurantObjectIds];
 
-    // Find orders that contain items from these restaurants
-    const orders = await Order.find({ 'items.restaurantId': { $in: restaurantIds } }).sort({ createdAt: -1 });
+    // Find orders that contain items from any of these restaurants (check by email or ID)
+    const orders = await Order.find({ 
+      $or: [
+        { 'items.restaurantEmail': vendorEmail },
+        { 'items.restaurantId': { $in: allRelevantIds } }
+      ]
+    }).sort({ createdAt: -1 });
     
     res.json(orders);
   } catch (error) {

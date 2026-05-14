@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Search, ShoppingCart, ChevronDown, LogIn, LogOut, User } from 'lucide-react';
+import { MapPin, Search, ShoppingCart, ChevronDown, LogIn, LogOut } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import toast from 'react-hot-toast';
@@ -8,11 +8,10 @@ export default function Header() {
   const { cartCount } = useCart();
   const navigate = useNavigate();
 
-  const [userAddress, setUserAddress] = useState("Jahanian, Punjab");
+  const [userAddress, setUserAddress] = useState("Sahiwal, Punjab");
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
 
   // Load user and address data
   useEffect(() => {
@@ -24,7 +23,6 @@ export default function Header() {
       const user = JSON.parse(savedUser);
       setIsLoggedIn(true);
       setUserName(user.name || "User");
-      setUserEmail(user.email || "");
     }
   }, []);
 
@@ -37,7 +35,7 @@ export default function Header() {
     localStorage.removeItem('shopeedo-user');
     setIsLoggedIn(false);
     setUserName("");
-    setUserEmail("");
+
     toast.success("Logged out successfully");
     navigate('/auth');
   };
@@ -53,7 +51,7 @@ export default function Header() {
 
     navigator.geolocation.getCurrentPosition(
       () => {
-        setUserAddress("Near You • Jahanian, Punjab");
+        setUserAddress("Near You • Sahiwal, Punjab");
         toast.success("✅ Location detected successfully!", { id: "location", duration: 2000 });
         setIsLocationOpen(false);
       },
@@ -64,14 +62,7 @@ export default function Header() {
     );
   };
 
-  const enterAddressManually = () => {
-    const newAddress = prompt("Enter your full delivery address:", userAddress);
-    if (newAddress && newAddress.trim()) {
-      setUserAddress(newAddress.trim());
-      toast.success("Address updated successfully!");
-      setIsLocationOpen(false);
-    }
-  };
+
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-100">

@@ -21,7 +21,8 @@ const restaurantSchema = new mongoose.Schema({
     id: String,
     name: String,
     price: Number,
-    desc: String
+    desc: String,
+    image: String
   }],
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }

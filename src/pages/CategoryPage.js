@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { getMenuByCategory } from '../services/api';
 import { Plus, Minus, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
+import SmartImage from '../components/SmartImage';
 
 export default function CategoryPage() {
   const { name } = useParams();
@@ -131,13 +132,12 @@ export default function CategoryPage() {
                   return (
                     <div key={item._id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 transition-all">
                       <div className="h-44 bg-gray-100 relative">
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-300">
-                            <Package size={48} />
-                          </div>
-                        )}
+                        <SmartImage
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full"
+                          fallbackText={item.name}
+                        />
                         <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-bold text-gray-600 capitalize">
                           {item.category}
                         </div>

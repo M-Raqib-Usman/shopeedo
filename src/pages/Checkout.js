@@ -11,8 +11,8 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { getGroupedCart, cartCount } = useCart();
 
-  const [userAddress, setUserAddress] = useState("Jahanian, Punjab");
-  const [deliveryLocation, setDeliveryLocation] = useState({ lat: 30.2982, lng: 71.9333 });
+  const [userAddress, setUserAddress] = useState("Sahiwal, Punjab");
+  const [deliveryLocation, setDeliveryLocation] = useState({ lat: 30.6682, lng: 73.1114 });
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' or 'card'
   const [cardDetails, setCardDetails] = useState('');

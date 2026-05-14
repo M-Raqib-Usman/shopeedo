@@ -138,7 +138,7 @@ const icons = {
 };
 
 const MapContainer = ({ 
-  location = { lat: 30.2982, lng: 71.9333 }, // Default to Jahanian
+  location = { lat: 30.6682, lng: 73.1114 }, // Default to Sahiwal
   setLocation, 
   interactive = false,
   height = "300px",
