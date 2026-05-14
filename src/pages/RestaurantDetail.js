@@ -73,8 +73,6 @@ export default function RestaurantDetail() {
       restaurantId: restaurant._id || restaurant.id,        // ← Critical fix
       restaurantName: restaurant.name,
     });
-
-    toast.success(`${dish.name} added to cart 🛒`);
   };
 
   if (loading) return <div className="pt-28 text-center py-20">Loading restaurant menu...</div>;
@@ -103,11 +101,23 @@ export default function RestaurantDetail() {
             transition={{ delay: 0.2 }}
           >
             <h1 className="text-4xl md:text-6xl font-black mb-3">{restaurant.name}</h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm md:text-base font-bold">
-              <span className="bg-orange-500 px-3 py-1 rounded-lg">⭐ {restaurant.rating || '4.5'}</span>
-              <span className="opacity-80">{restaurant.cuisine}</span>
-              <span className="opacity-80">• {restaurant.deliveryTime || '25-40 min'}</span>
-              <span className="opacity-80">• {restaurant.deliveryFee || 'Rs. 99'}</span>
+            <div className="flex flex-wrap items-center gap-6 text-sm md:text-base font-bold">
+              <span className="bg-orange-500 px-3 py-1 rounded-lg shadow-lg flex items-center gap-1">⭐ {restaurant.rating || '4.5'} <span className="opacity-60 text-xs font-normal">({restaurant.ratingCount || '100+'})</span></span>
+              <span className="opacity-90">{restaurant.cuisine}</span>
+              <div className="flex items-center gap-4 border-l border-white/20 pl-6">
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase opacity-60">Delivery</span>
+                  <span>{restaurant.deliveryTime || '25-40 min'}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase opacity-60">Fee</span>
+                  <span>Rs. {restaurant.deliveryFee || '99'}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase opacity-60">Min. Order</span>
+                  <span>Rs. 199</span>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>

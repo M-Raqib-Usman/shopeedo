@@ -41,7 +41,10 @@ export default function Checkout() {
   const groupedCart = getGroupedCart();
   const totalSubtotal = groupedCart.reduce((sum, group) => sum + group.subtotal, 0);
   const deliveryFees = groupedCart.length * 99;
-  const grandTotal = totalSubtotal + deliveryFees;
+  const platformFee = 9; 
+  const minOrderValue = 199;
+  const isBelowMinOrder = totalSubtotal < minOrderValue;
+  const grandTotal = totalSubtotal + deliveryFees + platformFee;
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
@@ -77,6 +80,11 @@ export default function Checkout() {
 
   const handlePlaceOrder = async () => {
     if (cartCount === 0) return;
+
+    if (isBelowMinOrder) {
+      toast.error(`Minimum order value is Rs. ${minOrderValue}. Please add more items.`);
+      return;
+    }
 
     // Check if user is logged in
     const savedUser = localStorage.getItem('shopeedo-user');
@@ -160,6 +168,13 @@ export default function Checkout() {
       <div className="max-w-2xl mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8 text-gray-900">Checkout</h1>
 
+        {isBelowMinOrder && (
+          <div className="bg-red-50 border border-red-100 text-red-700 p-4 rounded-2xl mb-6 flex items-center gap-3">
+             <span className="text-xl">⚠️</span>
+             <p className="text-sm font-bold">Minimum order value is Rs. {minOrderValue}. You need Rs. {minOrderValue - totalSubtotal} more.</p>
+          </div>
+        )}
+
         {/* Delivery Address & Map */}
         <div className="bg-white rounded-3xl p-6 mb-6 shadow-sm">
           <div className="flex justify-between items-center mb-4">
@@ -197,7 +212,7 @@ export default function Checkout() {
           </div>
         </div>
 
-        {/* Order Summary - same as before */}
+        {/* Order Summary */}
         <div className="bg-white rounded-3xl p-6 mb-6 shadow-sm">
           <h2 className="font-semibold text-lg mb-5">Order Summary</h2>
           
@@ -206,8 +221,8 @@ export default function Checkout() {
               <div className="font-medium mb-3 text-orange-700">{group.restaurantName}</div>
               {group.items.map((item) => (
                 <div key={item.id} className="flex justify-between py-2 text-sm">
-                  <span>{item.quantity}× {item.name}</span>
-                  <span>Rs. {item.price * item.quantity}</span>
+                  <span className="text-gray-700"><span className="font-bold">{item.quantity}×</span> {item.name}</span>
+                  <span className="font-bold">Rs. {item.price * item.quantity}</span>
                 </div>
               ))}
               <div className="border-t my-4"></div>
@@ -215,16 +230,31 @@ export default function Checkout() {
           ))}
 
           <div className="space-y-3 pt-4 border-t text-sm">
-            <div className="flex justify-between">
+            <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
               <span>Rs. {totalSubtotal}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between text-gray-600">
               <span>Delivery Fee</span>
               <span>Rs. {deliveryFees}</span>
             </div>
-            <div className="flex justify-between font-bold text-lg border-t pt-4">
-              <span>Grand Total</span>
+            <div className="flex justify-between text-gray-600">
+              <span className="flex items-center gap-1.5">Platform Fee <span className="bg-gray-100 text-[10px] px-1.5 py-0.5 rounded-full">?</span></span>
+              <span>Rs. {platformFee}</span>
+            </div>
+            
+            <div className="pt-4 mt-2 border-t">
+              <div className="bg-gray-50 p-3 rounded-xl flex items-center justify-between group hover:bg-orange-50 transition-colors cursor-pointer border border-dashed border-gray-300">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🎫</span>
+                  <span className="text-gray-500 font-bold group-hover:text-orange-600">Add a voucher code</span>
+                </div>
+                <span className="text-orange-500 font-black">APPLY</span>
+              </div>
+            </div>
+
+            <div className="flex justify-between font-black text-2xl border-t pt-4 text-gray-900 tracking-tighter">
+              <span>Total</span>
               <span>Rs. {grandTotal}</span>
             </div>
           </div>

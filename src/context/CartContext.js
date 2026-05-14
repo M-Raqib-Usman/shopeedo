@@ -22,14 +22,16 @@ export function CartProvider({ children }) {
 
   // Add to Cart - Accepts a single object
   const addToCart = (newItem) => {
-    let success = false;
+    let allowed = true;
+    
+    // Check for mixed restaurants synchronously before setting state
     setCartItems((prevItems) => {
-      // Check for mixed restaurants
       if (prevItems.length > 0) {
         const existingRestaurantId = prevItems[0].restaurantId;
         if (existingRestaurantId !== newItem.restaurantId) {
           toast.error("You can only order from one restaurant at a time. Please clear your cart first.");
-          return prevItems; // Do not modify the cart
+          allowed = false;
+          return prevItems;
         }
       }
 
@@ -37,23 +39,22 @@ export function CartProvider({ children }) {
         (i) => i.id === newItem.id && i.restaurantId === newItem.restaurantId
       );
 
-      success = true;
       if (existingIndex !== -1) {
-        // Increase quantity
         const updated = [...prevItems];
         updated[existingIndex] = {
           ...updated[existingIndex],
           quantity: updated[existingIndex].quantity + 1,
         };
-        toast.success("Added to cart!");
         return updated;
       } else {
-        // Add new item
-        toast.success("Added to cart!");
         return [...prevItems, { ...newItem, quantity: 1 }];
       }
     });
-    return success;
+
+    if (allowed) {
+      toast.success(`${newItem.name} added to cart!`, { id: 'cart-toast' }); // Use ID to prevent stacking
+    }
+    return allowed;
   };
 
   const removeFromCart = (itemId, restaurantId) => {

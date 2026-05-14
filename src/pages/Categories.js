@@ -5,30 +5,12 @@ import { getCategories } from '../services/api';
 import { motion } from 'framer-motion';
 import Loader from '../components/Loader';
 import SmartImage from '../components/SmartImage';
+import { getCategoryImage, imageMap } from '../utils/imageUtils';
 
 export default function Categories() {
   const navigate = useNavigate();
   const [dynamicCategories, setDynamicCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Image mapping for known category names
-  const imageMap = {
-    'pizza': 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
-    'biryani': 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=400&q=80',
-    'burgers': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
-    'burger': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
-    'groceries': 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80',
-    'desserts': 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&q=80',
-    'dessert': 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&q=80',
-    'chinese': 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&q=80',
-    'fast food': 'https://images.unsplash.com/photo-1626229652216-e5bb7f511917?w=400&q=80',
-    'drinks': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&q=80',
-    'beverages': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&q=80',
-    'bbq': 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80',
-    'karahi': 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&q=80',
-    'shawarma': 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&q=80',
-    'default': 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=400&q=80'
-  };
 
   // Static fallback categories
   const staticCategories = [
@@ -49,7 +31,7 @@ export default function Categories() {
         if (categoryData && categoryData.length > 0) {
           const mapped = categoryData.map(cat => ({
             name: cat,
-            image: imageMap[cat.toLowerCase()] || imageMap.default
+            image: getCategoryImage(cat)
           }));
           setDynamicCategories(mapped);
         }
@@ -82,7 +64,7 @@ export default function Categories() {
         >
           {categoriesToShow.map((item) => {
             const name = typeof item === 'string' ? item : item.name;
-            const image = typeof item === 'string' ? (imageMap[item.toLowerCase()] || imageMap.default) : item.image;
+            const image = typeof item === 'string' ? getCategoryImage(item) : (item.image || getCategoryImage(name));
             return (
               <motion.button
                 key={name}

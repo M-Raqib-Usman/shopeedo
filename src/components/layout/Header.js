@@ -149,7 +149,15 @@ export default function Header() {
             <input
               type="text"
               placeholder="Search biryani, pizza, groceries..."
-              className="w-full pl-12 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+              onChange={(e) => {
+                const query = e.target.value;
+                if (query.length > 2) {
+                  navigate(`/?search=${encodeURIComponent(query)}`);
+                } else if (query.length === 0) {
+                  navigate(`/`);
+                }
+              }}
+              className="w-full pl-12 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all focus:bg-white focus:shadow-inner"
             />
           </div>
 
