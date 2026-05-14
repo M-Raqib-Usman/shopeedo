@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { MapPin } from 'lucide-react';
+import MapContainer from '../components/MapContainer';
+import { getUserOrders } from '../services/api';
 
 export default function Orders() {
   const navigate = useNavigate();
@@ -21,23 +24,28 @@ export default function Orders() {
     setIsLoggedIn(true);
 
     fetchUserOrders(user.email);
+
+    // Polling for live updates
+    const interval = setInterval(() => {
+      fetchUserOrders(user.email, true); // true means silent update
+    }, 10000); // Poll every 10 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchUserOrders = async (email) => {
+  const fetchUserOrders = async (email, silent = false) => {
+    if (!silent) console.log("Fetching orders for:", email);
     try {
-      const res = await fetch(`http://localhost:5000/api/orders/user/${email}`);
-      if (res.ok) {
-        const data = await res.json();
-        setOrders(Array.isArray(data) ? data : []);
-      } else {
-        setOrders([]);
-      }
+      const data = await getUserOrders(email);
+      setOrders(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Failed to fetch user orders");
-      toast.error("Could not load your orders");
+      if (!silent) {
+        console.error("Failed to fetch user orders", error);
+        toast.error("Could not load your orders: " + error.message);
+      }
       setOrders([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -89,6 +97,7 @@ export default function Orders() {
             <div className="text-6xl mb-4">📦</div>
             <h2 className="text-2xl font-semibold mb-3">No orders yet</h2>
             <p className="text-gray-600">When you place an order, it will appear here.</p>
+            <p className="text-xs text-gray-400 mt-4">Searching for orders linked to: <span className="font-mono">{localStorage.getItem('shopeedo-user') ? JSON.parse(localStorage.getItem('shopeedo-user')).email : 'Not Logged In'}</span></p>
             <button
               onClick={() => navigate('/')}
               className="mt-8 bg-orange-500 text-white px-10 py-4 rounded-2xl font-semibold"
@@ -102,27 +111,79 @@ export default function Orders() {
               <div key={order.orderId} className="bg-white rounded-3xl shadow-sm p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <p className="font-mono font-medium text-lg">{order.orderId}</p>
+                    <p className="font-mono font-bold text-lg text-gray-900">{order.orderId}</p>
                     <p className="text-sm text-gray-500 mt-1">
                       {new Date(order.createdAt).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
-                        day: 'numeric'
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
                       })}
                     </p>
                   </div>
-                  <span className={`px-4 py-1 text-xs font-medium rounded-full ${order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'
+                  <span className={`px-4 py-1.5 text-xs font-bold rounded-full uppercase tracking-wider ${
+                      order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
+                      order.status === 'picked_up' ? 'bg-blue-100 text-blue-700' :
+                      'bg-orange-100 text-orange-700'
                     }`}>
-                    {order.status.toUpperCase()}
+                    {order.status ? order.status.replace('_', ' ') : 'Processing'}
                   </span>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-4">{order.address}</p>
+                {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                  <div className="my-6">
+                    <p className="text-sm font-medium text-gray-700 mb-3">Live Tracking</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                      <div className="bg-orange-500 h-2.5 rounded-full transition-all duration-500" style={{
+                        width: order.status === 'pending' ? '25%' : 
+                               order.status === 'ready' ? '50%' :
+                               order.status === 'picked_up' ? '75%' : '100%'
+                      }}></div>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500 font-medium">
+                      <span className={order.status === 'pending' ? 'text-orange-600' : ''}>Pending</span>
+                      <span className={order.status === 'ready' ? 'text-orange-600' : ''}>Preparing</span>
+                      <span className={order.status === 'picked_up' ? 'text-orange-600' : ''}>On the way</span>
+                      <span>Delivered</span>
+                    </div>
 
-                <div className="flex justify-between text-sm pt-4 border-t">
-                  <span className="text-gray-600">Total Paid</span>
-                  <span className="font-semibold">Rs. {order.total}</span>
+                    {(order.deliveryLocation || order.pickupLocation) && (
+                      <div className="mt-4 border rounded-xl overflow-hidden shadow-sm">
+                        <MapContainer 
+                          location={order.riderLocation || order.deliveryLocation || order.pickupLocation}
+                          height="220px"
+                          showRouting={true}
+                          markers={[
+                            ...(order.pickupLocation ? [{ ...order.pickupLocation, popup: "Restaurant", type: 'restaurant' }] : []),
+                            ...(order.deliveryLocation ? [{ ...order.deliveryLocation, popup: "Your Location", type: 'customer' }] : []),
+                            ...(order.riderLocation ? [{ ...order.riderLocation, popup: "Rider", type: 'rider' }] : [])
+                          ]}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex items-start gap-2 mb-4 bg-gray-50 p-3 rounded-xl">
+                  <MapPin className="text-orange-500 shrink-0" size={18} />
+                  <p className="text-sm text-gray-700 leading-tight">{order.address}</p>
+                </div>
+
+                <div className="flex justify-between items-center text-sm pt-4 border-t">
+                  <div className="flex gap-2 items-center">
+                    <span className="text-gray-500 font-medium">Payment:</span>
+                    <span className={`uppercase text-xs font-bold px-2 py-0.5 rounded ${
+                      order.paymentStatus === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {order.paymentMethod} ({order.paymentStatus})
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-gray-500 block text-xs">Total</span>
+                    <span className="font-bold text-lg">Rs. {order.total}</span>
+                  </div>
                 </div>
               </div>
             ))}

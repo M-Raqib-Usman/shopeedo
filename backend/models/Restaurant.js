@@ -8,6 +8,21 @@ const restaurantSchema = new mongoose.Schema({
   deliveryTime: String,
   deliveryFee: Number,
   image: String,
+  logo: String,               // Restaurant Logo
+  address: String,            // Physical Address
+  location: {                 // GPS Coordinates
+    lat: { type: Number },
+    lng: { type: Number }
+  },
+  contactInfo: String,        // Phone/Email for restaurant
+  vendorEmail: { type: String, default: null },
+  isApproved: { type: Boolean, default: false },
+  menu: [{
+    id: String,
+    name: String,
+    price: Number,
+    desc: String
+  }],
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });

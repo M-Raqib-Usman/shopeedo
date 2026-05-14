@@ -7,12 +7,63 @@ export default function Auth() {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('customer'); // 'customer', 'vendor', 'rider', 'admin'
+
+  const roleConfig = {
+    customer: {
+      color: 'orange',
+      bgClass: 'bg-orange-500',
+      hoverClass: 'hover:bg-orange-600',
+      textClass: 'text-orange-500',
+      ringClass: 'focus:ring-orange-400',
+      icon: 'S',
+      title: 'Shopeedo',
+      subtitle: 'Fast delivery for Food & Groceries'
+    },
+    rider: {
+      color: 'blue',
+      bgClass: 'bg-blue-600',
+      hoverClass: 'hover:bg-blue-700',
+      textClass: 'text-blue-600',
+      ringClass: 'focus:ring-blue-500',
+      icon: 'R',
+      title: 'Rider App',
+      subtitle: 'Deliver smiles, earn money'
+    },
+    vendor: {
+      color: 'emerald',
+      bgClass: 'bg-emerald-600',
+      hoverClass: 'hover:bg-emerald-700',
+      textClass: 'text-emerald-600',
+      ringClass: 'focus:ring-emerald-500',
+      icon: 'V',
+      title: 'Vendor Portal',
+      subtitle: 'Manage your restaurant & grow'
+    },
+    admin: {
+      color: 'gray',
+      bgClass: 'bg-gray-900',
+      hoverClass: 'hover:bg-black',
+      textClass: 'text-gray-900',
+      ringClass: 'focus:ring-gray-700',
+      icon: 'A',
+      title: 'Admin Control',
+      subtitle: 'Platform management center'
+    }
+  };
+
+  const currentConfig = roleConfig[selectedRole];
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     password: '',
+    licenseNumber: '',
+    cnic: '',
+    vehicleType: 'bike',
+    restaurantName: '',
+    businessAddress: ''
   });
 
   const handleChange = (e) => {
@@ -42,11 +93,10 @@ export default function Auth() {
           toast.success("🎉 Login successful!");
 
           // Redirect based on role
-          if (result.user.role === 'admin') {
-            navigate('/admin');
-          } else {
-            navigate('/');
-          }
+          if (result.user.role === 'admin') navigate('/admin');
+          else if (result.user.role === 'vendor') navigate('/vendor');
+          else if (result.user.role === 'rider') navigate('/rider');
+          else navigate('/');
         } else {
           toast.error(result.message || "Invalid email or password");
         }
@@ -59,7 +109,13 @@ export default function Auth() {
             name: formData.name,
             email: formData.email,
             phone: formData.phone,
-            password: formData.password
+            password: formData.password,
+            role: selectedRole,
+            licenseNumber: formData.licenseNumber,
+            cnic: formData.cnic,
+            vehicleType: formData.vehicleType,
+            restaurantName: formData.restaurantName,
+            address: formData.businessAddress
           })
         });
 
@@ -84,11 +140,14 @@ export default function Auth() {
             localStorage.setItem('shopeedo-user', JSON.stringify(loginResult.user));
             
             // Redirect based on role
-            if (loginResult.user.role === 'admin') {
-              navigate('/admin');
-            } else {
-              navigate('/');
-            }
+            if (loginResult.user.role === 'admin') navigate('/admin');
+            else if (loginResult.user.role === 'vendor') navigate('/vendor');
+            else if (loginResult.user.role === 'rider') navigate('/rider');
+            else navigate('/');
+          } else {
+            // Rider accounts are pending - show a message and redirect to login
+            toast("⏳ Your account is pending admin approval. You'll be notified once approved.", { duration: 5000 });
+            setIsLogin(true);
           }
         } else {
           toast.error(result.message || "Failed to create account");
@@ -114,11 +173,15 @@ export default function Auth() {
 
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <div className="mx-auto w-20 h-20 bg-orange-500 rounded-3xl flex items-center justify-center text-white text-5xl mb-5 shadow-lg">
-            S
+          <div className={`mx-auto w-20 h-20 ${currentConfig.bgClass} rounded-3xl flex items-center justify-center text-white text-5xl mb-5 shadow-lg transition-colors`}>
+            {currentConfig.icon}
           </div>
-          <h1 className="text-4xl font-bold text-gray-900">Shopeedo</h1>
-          <p className="text-gray-600 mt-2">Fast delivery for Food & Groceries</p>
+          <h1 className="text-4xl font-bold text-gray-900 transition-colors">
+            {currentConfig.title}
+          </h1>
+          <p className="text-gray-600 mt-2 transition-colors">
+            {currentConfig.subtitle}
+          </p>
         </div>
 
         {/* Tabs */}
@@ -126,7 +189,7 @@ export default function Auth() {
           <button
             onClick={() => setIsLogin(true)}
             className={`flex-1 py-4 rounded-3xl font-semibold transition-all ${
-              isLogin ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              isLogin ? `${currentConfig.bgClass} text-white shadow-sm` : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
             Login
@@ -134,7 +197,7 @@ export default function Auth() {
           <button
             onClick={() => setIsLogin(false)}
             className={`flex-1 py-4 rounded-3xl font-semibold transition-all ${
-              !isLogin ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              !isLogin ? `${currentConfig.bgClass} text-white shadow-sm` : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
             Sign Up
@@ -153,7 +216,7 @@ export default function Auth() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    className={`w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 ${currentConfig.ringClass}`}
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -166,10 +229,81 @@ export default function Auth() {
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    className={`w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 ${currentConfig.ringClass}`}
                     placeholder="03XX-XXXXXXX"
                   />
                 </div>
+
+                {selectedRole === 'rider' && (
+                  <div className="space-y-5 animate-fade-in">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">License Number</label>
+                      <input
+                        type="text"
+                        name="licenseNumber"
+                        value={formData.licenseNumber}
+                        onChange={handleChange}
+                        required
+                        className={`w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 ${currentConfig.ringClass}`}
+                        placeholder="Driving License #"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">CNIC Number</label>
+                      <input
+                        type="text"
+                        name="cnic"
+                        value={formData.cnic}
+                        onChange={handleChange}
+                        required
+                        className={`w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 ${currentConfig.ringClass}`}
+                        placeholder="XXXXX-XXXXXXX-X"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Vehicle Type</label>
+                      <select
+                        name="vehicleType"
+                        value={formData.vehicleType}
+                        onChange={handleChange}
+                        className={`w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 ${currentConfig.ringClass}`}
+                      >
+                        <option value="bike">Motorcycle</option>
+                        <option value="bicycle">Bicycle</option>
+                        <option value="car">Car</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {selectedRole === 'vendor' && (
+                  <div className="space-y-5 animate-fade-in">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Restaurant Name</label>
+                      <input
+                        type="text"
+                        name="restaurantName"
+                        value={formData.restaurantName}
+                        onChange={handleChange}
+                        required
+                        className={`w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 ${currentConfig.ringClass}`}
+                        placeholder="e.g. Pizza House"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Business Address</label>
+                      <input
+                        type="text"
+                        name="businessAddress"
+                        value={formData.businessAddress}
+                        onChange={handleChange}
+                        required
+                        className={`w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 ${currentConfig.ringClass}`}
+                        placeholder="Full shop address"
+                      />
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
@@ -181,7 +315,7 @@ export default function Auth() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className={`w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 ${currentConfig.ringClass}`}
                 placeholder="your@email.com"
               />
             </div>
@@ -194,7 +328,7 @@ export default function Auth() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className={`w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 ${currentConfig.ringClass}`}
                 placeholder="••••••••"
               />
             </div>
@@ -202,7 +336,7 @@ export default function Auth() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-400 text-white py-4 rounded-2xl font-semibold text-lg transition mt-6"
+              className={`w-full ${currentConfig.bgClass} ${currentConfig.hoverClass} disabled:opacity-70 text-white py-4 rounded-2xl font-semibold text-lg transition mt-6`}
             >
               {loading ? "Processing..." : isLogin ? "Login" : "Create Account"}
             </button>
@@ -211,13 +345,49 @@ export default function Auth() {
           <p className="text-center text-sm text-gray-500 mt-8">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
+              type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-orange-600 font-medium hover:underline"
+              className={`${currentConfig.textClass} font-medium hover:underline`}
             >
               {isLogin ? "Sign Up" : "Login"}
             </button>
           </p>
+          
+          {selectedRole !== 'customer' && (
+            <div className="mt-4 text-center border-t pt-4">
+              <button
+                type="button"
+                onClick={() => { setSelectedRole('customer'); setIsLogin(true); }}
+                className="text-gray-500 hover:text-gray-900 text-sm font-medium transition"
+              >
+                ← Back to Customer Login
+              </button>
+            </div>
+          )}
         </div>
+
+        {selectedRole === 'customer' && (
+          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4 text-sm">
+            <button 
+              onClick={() => { setSelectedRole('vendor'); setIsLogin(true); }}
+              className="px-4 py-2 border border-gray-300 rounded-xl bg-white hover:bg-gray-50 text-gray-700 font-medium transition"
+            >
+              Become a Vendor
+            </button>
+            <button 
+              onClick={() => { setSelectedRole('rider'); setIsLogin(true); }}
+              className="px-4 py-2 border border-gray-300 rounded-xl bg-white hover:bg-gray-50 text-gray-700 font-medium transition"
+            >
+              Become a Rider
+            </button>
+            <button 
+              onClick={() => { setSelectedRole('admin'); setIsLogin(true); }}
+              className="px-4 py-2 border border-gray-300 rounded-xl bg-gray-900 text-white hover:bg-gray-800 font-medium transition"
+            >
+              Admin Portal
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

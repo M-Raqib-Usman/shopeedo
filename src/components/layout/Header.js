@@ -164,6 +164,8 @@ export default function Header() {
 
           <nav className="flex gap-7 text-sm font-medium ml-auto">
             <NavLink to="/" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Home</NavLink>
+            <NavLink to="/restaurants" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Restaurants</NavLink>
+            <NavLink to="/categories" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Categories</NavLink>
             <NavLink to="/orders" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Orders</NavLink>
             <NavLink to="/profile" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Profile</NavLink>
             <NavLink to="/help" className={({ isActive }) => isActive ? "text-orange-600 font-semibold" : "text-gray-700 hover:text-orange-600"}>Help</NavLink>

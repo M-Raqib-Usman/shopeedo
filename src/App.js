@@ -10,9 +10,18 @@ import Auth from './pages/Auth';
 import Cart from './pages/Cart';
 import RestaurantDetail from './pages/RestaurantDetail';
 import CategoryPage from './pages/CategoryPage';
+import Categories from './pages/Categories';
+import Restaurants from './pages/Restaurants';
 import Checkout from './pages/Checkout';    
-import Admin from './pages/Admin'   
+import Admin from './pages/Admin';   
 import Orders from './pages/Orders';
+import RiderDashboard from './pages/RiderDashboard';
+import VendorDashboard from './pages/VendorDashboard';
+import VendorLogin from './pages/VendorLogin';
+import Profile from './pages/Profile';
+import Help from './pages/Help';
+import RiderProfile from './pages/RiderProfile';
+import VendorProfile from './pages/VendorProfile';
 
 function App() {
   return (
@@ -66,6 +75,26 @@ function App() {
             </div>
           } />
 
+          <Route path="/categories" element={
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+              <Header />
+              <main className="flex-1 pt-28">
+                <Categories />
+              </main>
+              <Footer />
+            </div>
+          } />
+
+          <Route path="/restaurants" element={
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+              <Header />
+              <main className="flex-1 pt-28">
+                <Restaurants />
+              </main>
+              <Footer />
+            </div>
+          } />
+
           <Route path="/checkout" element={
             <div className="min-h-screen bg-gray-50 flex flex-col">
               <Header />
@@ -77,32 +106,54 @@ function App() {
           } />
 
           <Route path="/admin" element={<Admin />} />
-          <Route path="/orders" element={<Orders />} />
-
-          {/* Placeholder Pages */}
+          <Route path="/rider" element={
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+              <main className="flex-1 py-10">
+                <RiderDashboard />
+              </main>
+            </div>
+          } />
+          <Route path="/vendor-login" element={<VendorLogin />} />
+          <Route path="/vendor" element={
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+              <main className="flex-1 py-10">
+                <VendorDashboard />
+              </main>
+            </div>
+          } />
           <Route path="/orders" element={
             <div className="min-h-screen bg-gray-50 flex flex-col">
               <Header />
-              <main className="flex-1 pt-28 pb-12 text-center">
-                <div className="max-w-md mx-auto mt-20">
-                  <h2 className="text-3xl font-bold mb-4">My Orders</h2>
-                  <p className="text-gray-600">Your order history will appear here.</p>
-                  <p className="text-sm text-gray-500 mt-8">Coming Soon...</p>
-                </div>
+              <main className="flex-1 pt-28">
+                <Orders />
               </main>
               <Footer />
             </div>
           } />
 
+          <Route path="/rider/profile" element={
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+              <main className="flex-1 py-10">
+                <RiderProfile />
+              </main>
+            </div>
+          } />
+
+          <Route path="/vendor/profile" element={
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+              <main className="flex-1 py-10">
+                <VendorProfile />
+              </main>
+            </div>
+          } />
+
+          {/* Placeholder Pages */}
+
           <Route path="/profile" element={
             <div className="min-h-screen bg-gray-50 flex flex-col">
               <Header />
               <main className="flex-1 pt-28 pb-12 text-center">
-                <div className="max-w-md mx-auto mt-20">
-                  <h2 className="text-3xl font-bold mb-4">Profile</h2>
-                  <p className="text-gray-600">Your profile settings will be here.</p>
-                  <p className="text-sm text-gray-500 mt-8">Coming Soon...</p>
-                </div>
+                <Profile />
               </main>
               <Footer />
             </div>
@@ -111,12 +162,8 @@ function App() {
           <Route path="/help" element={
             <div className="min-h-screen bg-gray-50 flex flex-col">
               <Header />
-              <main className="flex-1 pt-28 pb-12 text-center">
-                <div className="max-w-md mx-auto mt-20">
-                  <h2 className="text-3xl font-bold mb-4">Help Center</h2>
-                  <p className="text-gray-600">How can we help you today?</p>
-                  <p className="text-sm text-gray-500 mt-8">Coming Soon...</p>
-                </div>
+              <main className="flex-1 pt-28 pb-12">
+                <Help />
               </main>
               <Footer />
             </div>
